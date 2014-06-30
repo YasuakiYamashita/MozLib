@@ -43,9 +43,21 @@ namespace moz
 		//==============================================================================
 		// const
 		//------------------------------------------------------------------------------
-		const float kPI   = 3.141592654f;	
-		#define ToRadian( degree ) ((degree) * (kPI / 180.0f))
-		#define ToDegree( radian ) ((radian) * (180.0f / kPI))
+		const float kPI       = 3.141592654f;
+		const float kTWOPI    = 3.141592654f * 2.f; 
+		const float kRCPTWOPI = 0.159154943f;
+		#define ToRadian( deg ) ((deg) * (kPI / 180.f))
+		#define ToDegree( rad ) ((rad) * (180.f / kPI))
+
+		//==============================================================================
+		// degree
+		//------------------------------------------------------------------------------
+		float NormalizeAngle(float Angle)
+		{
+			long ofs = (*(long*)&Angle & 0x80000000) | 0x3F000000;
+			return (Angle - ((int)(Angle * kRCPTWOPI + *(float*)&ofs) * kTWOPI));
+		}
+
 
 		//==============================================================================
 		// 2DVector
@@ -68,13 +80,13 @@ namespace moz
 
 		public:
 			// ì‡êœ
-			float Dot(const Vector2D&);
+			inline float Dot(const Vector2D&);
 			// äOêœ	
-			float Cross(const Vector2D&);
+			inline float Cross(const Vector2D&);
 			// ê≥ãKâª
-			void Normalize(void);
+			inline void Normalize(void);
 			// í∑Ç≥éÊìæ
-			float GetLength(void);
+			inline float GetLength(void);
 
 		public:
 			union
@@ -105,13 +117,13 @@ namespace moz
 
 		public:
 			// ì‡êœ
-			float Dot(const Vector3D&);
+			inline float Dot(const Vector3D&);
 			// äOêœ	
-			Vector3D& Cross(const Vector3D&);
+			inline Vector3D Cross(const Vector3D&);
 			// ê≥ãKâª
-			void Normalize(void);
+			inline void Normalize(void);
 			// í∑Ç≥éÊìæ
-			float GetLength(void);
+			inline float GetLength(void);
 
 		public:
 			union
