@@ -8,8 +8,8 @@
 //******************************************************************************
 // include
 //******************************************************************************
+#include <math.h>
 #include "mozMath.h"
-
 
 namespace moz
 {
@@ -118,6 +118,135 @@ namespace moz
 			s.a._44 = a._41 * _a.a._14 + a._42 * _a.a._24 + a._43 * _a.a._34 + a._44 * _a.a._44;
 
 			return s;
+		}
+
+		//------------------------------------------------------------------------------
+		// 単位行列
+		//------------------------------------------------------------------------------
+		void Matrix4x4::Identity(Matrix4x4* out)
+		{
+			out->a._11 = 1;
+			out->a._12 = 0;
+			out->a._13 = 0;
+			out->a._14 = 0;
+			out->a._21 = 0;
+			out->a._22 = 1;
+			out->a._23 = 0;
+			out->a._24 = 0;
+			out->a._31 = 0;
+			out->a._32 = 0;
+			out->a._33 = 1;
+			out->a._34 = 0;
+			out->a._41 = 0;
+			out->a._42 = 0;
+			out->a._43 = 0;
+			out->a._44 = 1;
+		}
+		
+		//------------------------------------------------------------------------------
+		// 転置行列
+		//------------------------------------------------------------------------------
+		void Matrix4x4::Transposed(Matrix4x4* out, const Matrix4x4& in)
+		{
+			const Matrix4x4 tmp = in;
+			out->a._11 = tmp.a._11;
+			out->a._12 = tmp.a._21;
+			out->a._13 = tmp.a._31;
+			out->a._14 = tmp.a._41;
+			out->a._21 = tmp.a._12;
+			out->a._22 = tmp.a._22;
+			out->a._23 = tmp.a._32;
+			out->a._24 = tmp.a._42;
+			out->a._31 = tmp.a._13;
+			out->a._32 = tmp.a._23;
+			out->a._33 = tmp.a._33;
+			out->a._34 = tmp.a._43;
+			out->a._41 = tmp.a._14;
+			out->a._42 = tmp.a._24;
+			out->a._43 = tmp.a._34;
+			out->a._44 = tmp.a._44;
+		}
+
+		//------------------------------------------------------------------------------
+		// 逆行列
+		//------------------------------------------------------------------------------
+		void Matrix4x4::Inverse(Matrix4x4* out, const Matrix4x4& in)
+		{
+			const Matrix4x4 tmp = in;
+			const float det
+				=tmp.n[0] *tmp.n[5] *tmp.n[10] *tmp.n[15] +tmp.n[0] *tmp.n[6] *tmp.n[11] *tmp.n[13] +tmp.n[0] *tmp.n[7] *tmp.n[9] *tmp.n[14]
+				+tmp.n[1] *tmp.n[4] *tmp.n[11] *tmp.n[14] +tmp.n[1] *tmp.n[6] *tmp.n[8] *tmp.n[15] +tmp.n[1] *tmp.n[7] *tmp.n[10] *tmp.n[12]
+				+tmp.n[2] *tmp.n[4] *tmp.n[9] *tmp.n[15] +tmp.n[2] *tmp.n[5] *tmp.n[11] *tmp.n[12] +tmp.n[2] *tmp.n[7] *tmp.n[8] *tmp.n[13]
+				+tmp.n[3] *tmp.n[4] *tmp.n[10] *tmp.n[13] +tmp.n[3] *tmp.n[5] *tmp.n[8] *tmp.n[14] +tmp.n[3] *tmp.n[6] *tmp.n[9] *tmp.n[12]
+				-tmp.n[0] *tmp.n[5] *tmp.n[11] *tmp.n[14] -tmp.n[0] *tmp.n[6] *tmp.n[9] *tmp.n[15] -tmp.n[0] *tmp.n[7] *tmp.n[10] *tmp.n[13]
+				-tmp.n[1] *tmp.n[4] *tmp.n[10] *tmp.n[15] -tmp.n[1] *tmp.n[6] *tmp.n[11] *tmp.n[12] -tmp.n[1] *tmp.n[7] *tmp.n[8] *tmp.n[14]
+				-tmp.n[2] *tmp.n[4] *tmp.n[11] *tmp.n[13] -tmp.n[2] *tmp.n[5] *tmp.n[8] *tmp.n[15] -tmp.n[2] *tmp.n[7] *tmp.n[9] *tmp.n[12]
+				-tmp.n[3] *tmp.n[4] *tmp.n[9] *tmp.n[14] -tmp.n[3] *tmp.n[5] *tmp.n[10] *tmp.n[12] -tmp.n[3] *tmp.n[6] *tmp.n[8] *tmp.n[13];
+
+			if (det != 0)
+			{
+				float inv_det = 1.0f / det;
+
+				out->n[ 0] = inv_det * (tmp.n[ 5] *tmp.n[10] *tmp.n[15] +tmp.n[ 6] *tmp.n[11] *tmp.n[13] +tmp.n[ 7] *tmp.n[ 9] *tmp.n[14] -tmp.n[ 5] *tmp.n[11] *tmp.n[14] -tmp.n[ 6] *tmp.n[ 9] *tmp.n[15] -tmp.n[ 7] *tmp.n[10] *tmp.n[13]);
+				out->n[ 1] = inv_det * (tmp.n[ 1] *tmp.n[11] *tmp.n[14] +tmp.n[ 2] *tmp.n[ 9] *tmp.n[15] +tmp.n[ 3] *tmp.n[10] *tmp.n[13] -tmp.n[ 1] *tmp.n[10] *tmp.n[15] -tmp.n[ 2] *tmp.n[11] *tmp.n[13] -tmp.n[ 3] *tmp.n[ 9] *tmp.n[14]);
+				out->n[ 2] = inv_det * (tmp.n[ 1] *tmp.n[ 6] *tmp.n[15] +tmp.n[ 2] *tmp.n[ 7] *tmp.n[13] +tmp.n[ 3] *tmp.n[ 5] *tmp.n[14] -tmp.n[ 1] *tmp.n[ 7] *tmp.n[14] -tmp.n[ 2] *tmp.n[ 5] *tmp.n[15] -tmp.n[ 3] *tmp.n[ 6] *tmp.n[13]);
+				out->n[ 3] = inv_det * (tmp.n[ 1] *tmp.n[ 7] *tmp.n[10] +tmp.n[ 2] *tmp.n[ 5] *tmp.n[11] +tmp.n[ 3] *tmp.n[ 6] *tmp.n[ 9] -tmp.n[ 1] *tmp.n[ 6] *tmp.n[11] -tmp.n[ 2] *tmp.n[ 7] *tmp.n[ 9] -tmp.n[ 3] *tmp.n[ 5] *tmp.n[10]);
+ 
+				out->n[ 4] = inv_det * (tmp.n[ 4] *tmp.n[11] *tmp.n[14] +tmp.n[ 6] *tmp.n[ 8] *tmp.n[15] +tmp.n[ 7] *tmp.n[10] *tmp.n[12] -tmp.n[ 4] *tmp.n[10] *tmp.n[15] -tmp.n[ 6] *tmp.n[11] *tmp.n[12] -tmp.n[ 7] *tmp.n[ 8] *tmp.n[14]);
+				out->n[ 5] = inv_det * (tmp.n[ 0] *tmp.n[10] *tmp.n[15] +tmp.n[ 2] *tmp.n[11] *tmp.n[12] +tmp.n[ 3] *tmp.n[ 8] *tmp.n[14] -tmp.n[ 0] *tmp.n[11] *tmp.n[14] -tmp.n[ 2] *tmp.n[ 8] *tmp.n[15] -tmp.n[ 3] *tmp.n[10] *tmp.n[12]);
+				out->n[ 6] = inv_det * (tmp.n[ 0] *tmp.n[ 7] *tmp.n[14] +tmp.n[ 2] *tmp.n[ 4] *tmp.n[15] +tmp.n[ 3] *tmp.n[ 6] *tmp.n[12] -tmp.n[ 0] *tmp.n[ 6] *tmp.n[15] -tmp.n[ 2] *tmp.n[ 7] *tmp.n[12] -tmp.n[ 3] *tmp.n[ 4] *tmp.n[14]);
+				out->n[ 7] = inv_det * (tmp.n[ 0] *tmp.n[ 6] *tmp.n[11] +tmp.n[ 2] *tmp.n[ 7] *tmp.n[ 8] +tmp.n[ 3] *tmp.n[ 4] *tmp.n[10] -tmp.n[ 0] *tmp.n[ 7] *tmp.n[10] -tmp.n[ 2] *tmp.n[ 4] *tmp.n[11] -tmp.n[ 3] *tmp.n[ 6] *tmp.n[ 8]);
+
+				out->n[ 8] = inv_det * (tmp.n[ 4] *tmp.n[ 9] *tmp.n[15] +tmp.n[ 5] *tmp.n[11] *tmp.n[12] +tmp.n[ 7] *tmp.n[ 8] *tmp.n[13] -tmp.n[ 4] *tmp.n[11] *tmp.n[13] -tmp.n[ 5] *tmp.n[ 8] *tmp.n[15] -tmp.n[ 7] *tmp.n[ 9] *tmp.n[12]);
+				out->n[ 9] = inv_det * (tmp.n[ 0] *tmp.n[11] *tmp.n[13] +tmp.n[ 1] *tmp.n[ 8] *tmp.n[15] +tmp.n[ 3] *tmp.n[ 9] *tmp.n[12] -tmp.n[ 0] *tmp.n[ 9] *tmp.n[15] -tmp.n[ 1] *tmp.n[11] *tmp.n[12] -tmp.n[ 3] *tmp.n[ 8] *tmp.n[13]);
+				out->n[10] = inv_det * (tmp.n[ 0] *tmp.n[ 5] *tmp.n[15] +tmp.n[ 1] *tmp.n[ 7] *tmp.n[12] +tmp.n[ 3] *tmp.n[ 4] *tmp.n[13] -tmp.n[ 0] *tmp.n[ 7] *tmp.n[13] -tmp.n[ 1] *tmp.n[ 4] *tmp.n[15] -tmp.n[ 3] *tmp.n[ 5] *tmp.n[12]);
+				out->n[11] = inv_det * (tmp.n[ 0] *tmp.n[ 7] *tmp.n[ 9] +tmp.n[ 1] *tmp.n[ 4] *tmp.n[11] +tmp.n[ 3] *tmp.n[ 5] *tmp.n[ 8] -tmp.n[ 0] *tmp.n[ 5] *tmp.n[11] -tmp.n[ 1] *tmp.n[ 7] *tmp.n[ 8] -tmp.n[ 3] *tmp.n[ 4] *tmp.n[ 9]);
+
+				out->n[12] = inv_det * (tmp.n[ 4] *tmp.n[10] *tmp.n[13] +tmp.n[ 5] *tmp.n[ 8] *tmp.n[14] +tmp.n[ 6] *tmp.n[ 9] *tmp.n[12] -tmp.n[ 4] *tmp.n[ 9] *tmp.n[14] -tmp.n[ 5] *tmp.n[10] *tmp.n[12] -tmp.n[ 6] *tmp.n[ 8] *tmp.n[13]);
+				out->n[13] = inv_det * (tmp.n[ 0] *tmp.n[ 9] *tmp.n[14] +tmp.n[ 1] *tmp.n[10] *tmp.n[12] +tmp.n[ 2] *tmp.n[ 8] *tmp.n[13] -tmp.n[ 0] *tmp.n[10] *tmp.n[13] -tmp.n[ 1] *tmp.n[ 8] *tmp.n[14] -tmp.n[ 2] *tmp.n[ 9] *tmp.n[12]);
+				out->n[14] = inv_det * (tmp.n[ 0] *tmp.n[ 6] *tmp.n[13] +tmp.n[ 1] *tmp.n[ 4] *tmp.n[14] +tmp.n[ 2] *tmp.n[ 5] *tmp.n[12] -tmp.n[ 0] *tmp.n[ 5] *tmp.n[14] -tmp.n[ 1] *tmp.n[ 6] *tmp.n[12] -tmp.n[ 2] *tmp.n[ 4] *tmp.n[13]);
+				out->n[15] = inv_det * (tmp.n[ 0] *tmp.n[ 5] *tmp.n[10] +tmp.n[ 1] *tmp.n[ 6] *tmp.n[ 8] +tmp.n[ 2] *tmp.n[ 4] *tmp.n[ 9] -tmp.n[ 0] *tmp.n[ 6] *tmp.n[ 9] -tmp.n[ 1] *tmp.n[ 4] *tmp.n[10] -tmp.n[ 2] *tmp.n[ 5] *tmp.n[ 8]);
+			}
+		}
+
+		//------------------------------------------------------------------------------
+		// 単位行列
+		//------------------------------------------------------------------------------
+		void Matrix4x4::Identity(void)
+		{
+			Identity(this);
+		}
+
+		//------------------------------------------------------------------------------
+		// 転置行列
+		//------------------------------------------------------------------------------
+		void Matrix4x4::Transposed(void)
+		{
+			Transposed(this, *this);
+		}
+
+		//------------------------------------------------------------------------------
+		// 逆行列
+		//------------------------------------------------------------------------------
+		void Matrix4x4::Inverse(void)
+		{
+			Inverse(this, *this);
+		}
+
+		//------------------------------------------------------------------------------
+		// 転置行列
+		//------------------------------------------------------------------------------
+		void Matrix4x4::Transposed(Matrix4x4* inOut)
+		{
+			Transposed(inOut, *inOut);
+		}
+
+		//------------------------------------------------------------------------------
+		// 逆行列
+		//------------------------------------------------------------------------------
+		void Matrix4x4::Inverse(Matrix4x4* inOut)
+		{
+			Inverse(inOut, *inOut);
 		}
 	}
 }

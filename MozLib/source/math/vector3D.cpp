@@ -125,7 +125,7 @@ namespace moz
 		//------------------------------------------------------------------------------
 		float Vector3D::Dot(const Vector3D& vec)
 		{
-			return v.x * vec.v.x + v.y * vec.v.y + v.z * vec.v.z;
+			return Dot(*this, vec);
 		}
 
 		//------------------------------------------------------------------------------
@@ -133,10 +133,9 @@ namespace moz
 		//------------------------------------------------------------------------------
 		Vector3D Vector3D::Cross(const Vector3D& vec)
 		{
-			return Vector3D(
-				v.y*vec.v.z - v.z*vec.v.y,
-				v.z*vec.v.x - v.x*vec.v.z,
-				v.x*vec.v.y - v.y*vec.v.x);
+			Vector3D out;
+			Cross(&out, *this, vec);
+			return out;
 		}
 
 		//------------------------------------------------------------------------------
@@ -144,8 +143,7 @@ namespace moz
 		//------------------------------------------------------------------------------
 		float Vector3D::GetLength(void)
 		{
-			#define POW2(x) ((x)*(x))
-			return sqrtf(POW2(v.x) + POW2(v.y) + POW2(v.z));
+			return GetLength(*this);
 		}
 
 		//------------------------------------------------------------------------------
@@ -153,13 +151,51 @@ namespace moz
 		//------------------------------------------------------------------------------
 		void Vector3D::Normalize(void)
 		{
-			float len = GetLength();
+			Normalize(this, *this);
+		}
+
+		//------------------------------------------------------------------------------
+		// “àÏ
+		//------------------------------------------------------------------------------
+		float Vector3D::Dot(const Vector3D& vec1, const Vector3D& vec2)
+		{
+			return vec1.v.x * vec2.v.x + vec1.v.y * vec2.v.y + vec1.v.z * vec2.v.z;
+		}
+		
+		//------------------------------------------------------------------------------
+		// ŠOÏ
+		//------------------------------------------------------------------------------
+		void Vector3D::Cross(Vector3D* out, const Vector3D& vec1, const Vector3D& vec2)
+		{
+			if (out == nullptr) return;
+
+			*out = Vector3D(
+				vec1.v.y*vec2.v.z - vec1.v.z*vec2.v.y,
+				vec1.v.z*vec2.v.x - vec1.v.x*vec2.v.z,
+				vec1.v.x*vec2.v.y - vec1.v.y*vec2.v.x);
+		}
+
+		//------------------------------------------------------------------------------
+		// ’·‚³Žæ“¾
+		//------------------------------------------------------------------------------
+		float Vector3D::GetLength(const Vector3D& vec)
+		{
+			#define POW2(x) ((x)*(x))
+			return sqrtf(POW2(vec.v.x) + POW2(vec.v.y) + POW2(vec.v.z));
+		}
+
+		//------------------------------------------------------------------------------
+		// ³‹K‰»
+		//------------------------------------------------------------------------------
+		void Vector3D::Normalize(Vector3D* out, const Vector3D& in)
+		{
+			float len = GetLength(in);
 			if (len != 0)
 			{
 				float scale = 1.f / len;
-				v.x *= scale;
-				v.y *= scale;
-				v.z *= scale;
+				out->v.x *= scale;
+				out->v.y *= scale;
+				out->v.z *= scale;
 			}
 		}
 	}

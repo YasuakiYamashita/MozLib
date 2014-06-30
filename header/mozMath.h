@@ -11,9 +11,9 @@
 #define _MOZMATH_H_
 
 #ifdef _DEBUG
-#pragma comment(lib, "./lib/MozMath_d.lib")
+#pragma comment(lib, "C:/mozLib/lib/MozMath_d.lib")
 #else
-#pragma comment(lib, "./lib/MozMath.lib")
+#pragma comment(lib, "C:/mozLib/lib/MozMath.lib")
 #endif
 
 namespace moz
@@ -50,14 +50,9 @@ namespace moz
 		#define ToDegree( rad ) ((rad) * (180.f / kPI))
 
 		//==============================================================================
-		// degree
+		// ユーティリティ
 		//------------------------------------------------------------------------------
-		float NormalizeAngle(float Angle)
-		{
-			long ofs = (*(long*)&Angle & 0x80000000) | 0x3F000000;
-			return (Angle - ((int)(Angle * kRCPTWOPI + *(float*)&ofs) * kTWOPI));
-		}
-
+		float NormalizeAngle(float Angle);		// 正規化
 
 		//==============================================================================
 		// 2DVector
@@ -87,6 +82,16 @@ namespace moz
 			inline void Normalize(void);
 			// 長さ取得
 			inline float GetLength(void);
+
+		public:
+			// 内積
+			static inline float Dot(const Vector2D&, const Vector2D&);
+			// 外積	
+			static inline float Cross(const Vector2D&, const Vector2D&);
+			// 正規化
+			static inline void Normalize(Vector2D* out, const Vector2D& in);
+			// 長さ取得
+			static inline float GetLength(const Vector2D& in);
 
 		public:
 			union
@@ -124,6 +129,16 @@ namespace moz
 			inline void Normalize(void);
 			// 長さ取得
 			inline float GetLength(void);
+
+		public:
+			// 内積
+			static inline float Dot( const Vector3D&, const Vector3D&);
+			// 外積
+			static inline void Cross(Vector3D* out, const Vector3D&, const Vector3D&);
+			// 正規化
+			static inline void Normalize(Vector3D* out, const Vector3D& in);
+			// 長さ取得
+			static inline float GetLength(const Vector3D& in);
 
 		public:
 			union
@@ -208,10 +223,23 @@ namespace moz
 			// 単位行列
 			void Identity(void);
 			// 転置行列
-
+			void Transposed(void);
 			// 逆行列
-			void Inverse(){};
+			void Inverse(void);
 
+		public:
+			// 単位行列
+			static inline void Identity(Matrix4x4* out);
+			// 転置行列
+			static inline void Transposed(Matrix4x4* out, const Matrix4x4& in);
+			// 逆行列
+			static inline void Inverse(Matrix4x4* out, const Matrix4x4& in);
+
+
+			// 転置行列
+			static inline void Transposed(Matrix4x4* inOut);
+			// 逆行列
+			static inline void Inverse(Matrix4x4* inOut);
 
 		public:
 			union
