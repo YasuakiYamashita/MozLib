@@ -10,7 +10,11 @@
 #ifndef _MOZMATH_H_
 #define _MOZMATH_H_
 
-
+#ifdef _DEBUG
+#pragma (lib, "lib/mozMath_d.lib")
+#else
+#pragma (lib, "lib/mozMath.lib")
+#endif
 
 namespace moz
 {
