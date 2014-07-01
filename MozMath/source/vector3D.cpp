@@ -1,6 +1,6 @@
 //==============================================================================
 //
-// 2Dベクトル[vector2D.cpp]
+// 3Dベクトル[vector3D.cpp]
 // Author : Yasuaki Yamashita : 2014/05/09
 //
 //==============================================================================
@@ -18,50 +18,51 @@ namespace moz
 		//------------------------------------------------------------------------------
 		// コンスラクタ
 		//------------------------------------------------------------------------------
-		Vector2D::Vector2D(float _x, float _y)
+		Vector3D::Vector3D(float _x, float _y, float _z)
 		{
 			v.x = _x;
 			v.y = _y;
+			v.z = _z;
 		}
 
 		//------------------------------------------------------------------------------
 		// ベクタスカラ倍
 		//------------------------------------------------------------------------------
-		Vector2D Vector2D::operator*(float f) const
+		Vector3D Vector3D::operator*(float f) const
 		{
-			return Vector2D(v.x*f, v.y*f);
+			return Vector3D(v.x*f, v.y*f, v.z*f);
 		}
 
 		//------------------------------------------------------------------------------
 		// ベクタスカラ倍
 		//------------------------------------------------------------------------------
-		Vector2D Vector2D::operator/(float f) const
+		Vector3D Vector3D::operator/(float f) const
 		{
 			// 逆数とって計算したほうが早い
 			float fInv = 1.f / f;
-			return Vector2D(v.x*fInv, v.y*fInv);
+			return Vector3D(v.x*fInv, v.y*fInv, v.z*fInv);
 		}
 
 		//------------------------------------------------------------------------------
 		// ベクタ同士の足し算
 		//------------------------------------------------------------------------------
-		Vector2D Vector2D::operator+(const Vector2D& _v) const
+		Vector3D Vector3D::operator+(const Vector3D& _v) const
 		{
-			return Vector2D(v.x + _v.v.x, v.y + _v.v.y);
+			return Vector3D(v.x + _v.v.x, v.y + _v.v.y, v.z + _v.v.z);
 		}
 
 		//------------------------------------------------------------------------------
 		// ベクタ同士の差
 		//------------------------------------------------------------------------------
-		Vector2D Vector2D::operator-(const Vector2D& _v) const
+		Vector3D Vector3D::operator-(const Vector3D& _v) const
 		{
-			return Vector2D(v.x - _v.v.x, v.y - _v.v.y);
+			return Vector3D(v.x - _v.v.x, v.y - _v.v.y, v.z - _v.v.z);
 		}
 
 		//------------------------------------------------------------------------------
 		// ベクタの前に書かれてた+記号
 		//------------------------------------------------------------------------------
-		Vector2D Vector2D::operator+() const
+		Vector3D Vector3D::operator+() const
 		{
 			return *this;
 		}
@@ -69,81 +70,123 @@ namespace moz
 		//------------------------------------------------------------------------------
 		// ベクタの前に書かれてた-記号
 		//------------------------------------------------------------------------------
-		Vector2D Vector2D::operator-() const
+		Vector3D Vector3D::operator-() const
 		{
-			return Vector2D(-v.x, -v.y);
+			return Vector3D(-v.x, -v.y, -v.z);
 		}
 
 		//------------------------------------------------------------------------------
 		// ベクタスカラ倍の代入
 		//------------------------------------------------------------------------------
-		Vector2D& Vector2D::operator*=(float f)
+		Vector3D& Vector3D::operator*=(float f)
 		{
 			v.x *= f;
 			v.y *= f;
+			v.z *= f;
 			return *this;
 		}
 
 		//------------------------------------------------------------------------------
 		// ベクタスカラ倍の代入
 		//------------------------------------------------------------------------------
-		Vector2D& Vector2D::operator/=(float f)
+		Vector3D& Vector3D::operator/=(float f)
 		{
 			float fInv = 1.f / f;
 			v.x *= fInv;
 			v.y *= fInv;
+			v.z *= fInv;
 			return *this;
 		}
 
 		//------------------------------------------------------------------------------
 		// ベクタの和と代入の合成
 		//------------------------------------------------------------------------------
-		Vector2D& Vector2D::operator+=(const Vector2D& _v)
+		Vector3D& Vector3D::operator+=(const Vector3D& _v)
 		{
 			v.x += _v.v.x;
 			v.y += _v.v.y;
+			v.z += _v.v.z;
 			return *this;
 		}
 
 		//------------------------------------------------------------------------------
 		// ベクタの和と代入の合成
 		//------------------------------------------------------------------------------
-		Vector2D& Vector2D::operator-=(const Vector2D& _v)
+		Vector3D& Vector3D::operator-=(const Vector3D& _v)
 		{
 			v.x -= _v.v.x;
 			v.y -= _v.v.y;
+			v.z -= _v.v.z;
 			return *this;
 		}
 
 		//------------------------------------------------------------------------------
 		// 内積
 		//------------------------------------------------------------------------------
-		float Vector2D::Dot(const Vector2D& vec1, const Vector2D& vec2)
+		float Vector3D::Dot(const Vector3D& vec)
 		{
-			return vec1.v.x * vec2.v.x + vec1.v.y * vec2.v.y;
+			return Dot(*this, vec);
 		}
 
 		//------------------------------------------------------------------------------
 		// 外積
 		//------------------------------------------------------------------------------
-		float Vector2D::Cross(const Vector2D& vec1, const Vector2D& vec2)
+		Vector3D Vector3D::Cross(const Vector3D& vec)
 		{
-			return vec1.v.x * vec2.v.y - vec1.v.y * vec2.v.x;
+			Vector3D out;
+			Cross(&out, *this, vec);
+			return out;
 		}
 
 		//------------------------------------------------------------------------------
 		// 長さ取得
 		//------------------------------------------------------------------------------
-		float Vector2D::GetLength(const Vector2D& vec)
+		float Vector3D::GetLength(void)
 		{
-			#define POW2(x) ((x)*(x))
-			return sqrtf(POW2(vec.v.x) + POW2(vec.v.y));
+			return GetLength(*this);
 		}
 
 		//------------------------------------------------------------------------------
 		// 正規化
 		//------------------------------------------------------------------------------
-		void Vector2D::Normalize(Vector2D* out, const Vector2D& in)
+		void Vector3D::Normalize(void)
+		{
+			Normalize(this, *this);
+		}
+
+		//------------------------------------------------------------------------------
+		// 内積
+		//------------------------------------------------------------------------------
+		float Vector3D::Dot(const Vector3D& vec1, const Vector3D& vec2)
+		{
+			return vec1.v.x * vec2.v.x + vec1.v.y * vec2.v.y + vec1.v.z * vec2.v.z;
+		}
+		
+		//------------------------------------------------------------------------------
+		// 外積
+		//------------------------------------------------------------------------------
+		void Vector3D::Cross(Vector3D* out, const Vector3D& vec1, const Vector3D& vec2)
+		{
+			if (out == nullptr) return;
+
+			*out = Vector3D(
+				vec1.v.y*vec2.v.z - vec1.v.z*vec2.v.y,
+				vec1.v.z*vec2.v.x - vec1.v.x*vec2.v.z,
+				vec1.v.x*vec2.v.y - vec1.v.y*vec2.v.x);
+		}
+
+		//------------------------------------------------------------------------------
+		// 長さ取得
+		//------------------------------------------------------------------------------
+		float Vector3D::GetLength(const Vector3D& vec)
+		{
+			return sqrtf(POW2(vec.v.x) + POW2(vec.v.y) + POW2(vec.v.z));
+		}
+
+		//------------------------------------------------------------------------------
+		// 正規化
+		//------------------------------------------------------------------------------
+		void Vector3D::Normalize(Vector3D* out, const Vector3D& in)
 		{
 			float len = GetLength(in);
 			if (len != 0)
@@ -151,39 +194,8 @@ namespace moz
 				float scale = 1.f / len;
 				out->v.x *= scale;
 				out->v.y *= scale;
+				out->v.z *= scale;
 			}
-		}
-
-		//------------------------------------------------------------------------------
-		// 内積
-		//------------------------------------------------------------------------------
-		float Vector2D::Dot(const Vector2D& vec)
-		{
-			return Dot(*this, vec);
-		}
-
-		//------------------------------------------------------------------------------
-		// 外積	
-		//------------------------------------------------------------------------------
-		float Vector2D::Cross(const Vector2D& vec)
-		{
-			return Cross(*this, vec);
-		}
-
-		//------------------------------------------------------------------------------
-		// 正規化
-		//------------------------------------------------------------------------------
-		void Vector2D::Normalize(void)
-		{
-			Normalize(this, *this);
-		}
-
-		//------------------------------------------------------------------------------
-		// 長さ取得
-		//------------------------------------------------------------------------------
-		float Vector2D::GetLength(void)
-		{
-			return GetLength(*this);
 		}
 	}
 }

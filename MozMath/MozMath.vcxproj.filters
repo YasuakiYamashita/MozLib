@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="source">
+      <UniqueIdentifier>{a7a49822-fa66-4398-aa28-b02193cdf1b2}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\header\mozMath.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="source\vector3D.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="source\vector4D.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="source\matrix4x4.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="source\utility.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="source\vector2D.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="source\color.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

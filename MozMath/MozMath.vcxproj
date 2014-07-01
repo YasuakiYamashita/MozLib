@@ -11,9 +11,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{B13CD8F6-141A-43EE-851D-7EBFDE42A611}</ProjectGuid>
-    <RootNamespace>MozLib</RootNamespace>
-    <ProjectName>MozMath</ProjectName>
+    <ProjectGuid>{C6E76AF6-D55C-455A-80EC-F6744521A034}</ProjectGuid>
+    <RootNamespace>MozMath</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -34,24 +33,14 @@
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="debiug.props" />
+    <Import Project="..\debug.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="release.props" />
+    <Import Project="..\release.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(SolutionDir)..\header\;$(IncludePath)</IncludePath>
-    <TargetName>$(ProjectName)_d</TargetName>
-    <OutDir>$(SolutionDir)..\lib\</OutDir>
-    <IntDir>$(Configuration)\$(ProjectName)\</IntDir>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(SolutionDir)..\header\;$(IncludePath)</IncludePath>
-    <OutDir>$(SolutionDir)..\lib\</OutDir>
-    <IntDir>$(Configuration)\$(ProjectName)\</IntDir>
-  </PropertyGroup>
+  <PropertyGroup />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -64,8 +53,8 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <WarningLevel>Level4</WarningLevel>
-      <Optimization>Full</Optimization>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
@@ -77,14 +66,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="source\math\matrix4x4.cpp" />
-    <ClCompile Include="source\math\utility.cpp" />
-    <ClCompile Include="source\math\vector2D.cpp" />
-    <ClCompile Include="source\math\vector3D.cpp" />
-    <ClCompile Include="source\math\vector4D.cpp" />
+    <ClInclude Include="..\header\mozMath.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\header\mozMath.h" />
+    <ClCompile Include="source\color.cpp" />
+    <ClCompile Include="source\matrix4x4.cpp" />
+    <ClCompile Include="source\utility.cpp" />
+    <ClCompile Include="source\vector2D.cpp" />
+    <ClCompile Include="source\vector3D.cpp" />
+    <ClCompile Include="source\vector4D.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

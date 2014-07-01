@@ -4,6 +4,12 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <_PropertySheetDisplayName>debug</_PropertySheetDisplayName>
+    <OutDir>$(SolutionDir)lib\</OutDir>
+    <IntDir>$(ProjectDir)Build\$(Configuration)\</IntDir>
+    <TargetName>$(ProjectName)_d</TargetName>
+    <TargetExt>.lib</TargetExt>
+    <IncludePath>$(SolutionDir)header\;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)lib\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
