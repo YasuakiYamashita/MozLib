@@ -11,9 +11,9 @@
 #define _MOZMATH_H_
 
 #ifdef _DEBUG
-#pragma (lib, "lib/mozMath_d.lib")
+#pragma comment(lib, "lib/mozMath_d.lib")
 #else
-#pragma (lib, "lib/mozMath.lib")
+#pragma comment(lib, "lib/mozMath.lib")
 #endif
 
 namespace moz

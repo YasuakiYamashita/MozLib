@@ -15,18 +15,29 @@ namespace moz
 	namespace thread
 	{
 		//==============================================================================
+		// これから呼ぶ
+		//------------------------------------------------------------------------------
+		DWORD WINAPI ThreadFunc::Func(void * func)
+		{
+			return ((funcData*)func)->func->_Func((funcData*)func);
+		}
+
+
+		//==============================================================================
 		// コンストラクタ
 		//------------------------------------------------------------------------------
-		Thread::Thread(ThreadFunc const callback, const bool isSuspend, void * param)
+		Thread::Thread(ThreadFunc * param, const bool isSuspend, void * data)
 			: m_hThread(nullptr)
 			, m_threadId(0)
 			, m_isSuspend(isSuspend)
-			, m_isExit(false)
+			, m_data(nullptr)
 		{
-			m_hThread = CreateThread(nullptr, 0, callback, param, m_isSuspend ? CREATE_SUSPENDED : 0, &m_threadId);
+			m_data = new funcData(param, data);
+
+
+			m_hThread = CreateThread(nullptr, 0, ThreadFunc::Func, m_data, m_isSuspend ? CREATE_SUSPENDED : 0, &m_threadId);
 
 			if (m_hThread == nullptr) {
-				m_isExit = true;
 				m_isSuspend = true;
 			}
 		}
@@ -42,6 +53,8 @@ namespace moz
 			// ハンドルの解放
 			CloseHandle(m_hThread);
 			m_hThread = nullptr;
+
+			delete m_data;
 		}
 
 		//==============================================================================
@@ -57,6 +70,7 @@ namespace moz
 		//------------------------------------------------------------------------------
 		void Thread::JoinSleep(void)
 		{
+			Exit();
 			WaitForSingleObject(m_hThread, INFINITE);
 			Sleep(1);
 		}

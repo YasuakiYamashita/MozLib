@@ -10,6 +10,13 @@
 #ifndef _MOZTHREAD_H_
 #define _MOZTHREAD_H_
 
+#ifdef _DEBUG
+#pragma comment(lib, "lib/mozThread_d.lib")
+#else
+#pragma comment(lib, "lib/mozThread.lib")
+#endif
+
+
 //------------------------------------------------------------------------------
 // include
 //------------------------------------------------------------------------------
@@ -19,17 +26,38 @@ namespace moz
 {
 	namespace thread
 	{
+		class ThreadFunc;
+
+		//==============================================================================
+		// 送信データ
+		//------------------------------------------------------------------------------
+		struct funcData
+		{
+			funcData(ThreadFunc* _func, void* _data = nullptr) :data(_data), func(_func), isExit(false){};
+			void * data;
+			ThreadFunc* func;
+			bool isExit;
+		};
+
+		//==============================================================================
+		// これを継承させて使ってね
+		//------------------------------------------------------------------------------
+		class ThreadFunc
+		{
+		public:
+			static DWORD WINAPI Func(void *);
+
+		private:
+			virtual DWORD _Func(funcData *) = 0;
+		};
+
 		//==============================================================================
 		// class
 		//------------------------------------------------------------------------------
 		class Thread
 		{
 		public:
-			/// type
-			typedef DWORD(WINAPI *ThreadFunc)(void*);
-
-		public:
-			Thread(ThreadFunc callback, bool isSuspend = false, void *param = nullptr);
+			Thread(ThreadFunc *param, bool isSuspend = false, void* data = nullptr);
 			~Thread();
 
 			// スレッドが死んでいるか
@@ -41,11 +69,16 @@ namespace moz
 			// 再開
 			void Start(void);
 
+			// 終了かどうか
+			bool IsExit(void){ return m_data->isExit; }
+
+			// 終了させる
+			void Exit(void){ m_data->isExit = true; }
 		private:
 			HANDLE m_hThread;	// スレッドハンドル
 			DWORD m_threadId;	// スレッドID
 			bool m_isSuspend;	// サスペンド状態か
-			bool m_isExit;		// 終了フラグ
+			funcData* m_data;
 		};
 
 	}

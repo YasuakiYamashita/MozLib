@@ -7,6 +7,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MozMath", "MozMath\MozMath.
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MozThread", "MozThread\MozThread.vcxproj", "{68B3A976-B50C-4CE7-BCC5-E6029E22FFCF}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MozWindow", "MozWindow\MozWindow.vcxproj", "{17242E9C-B454-4A6B-AD94-78BBB781912C}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mozTest", "mozTest\mozTest.vcxproj", "{8C03B83D-A225-4021-8763-98279321516E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -21,6 +25,14 @@ Global
 		{68B3A976-B50C-4CE7-BCC5-E6029E22FFCF}.Debug|Win32.Build.0 = Debug|Win32
 		{68B3A976-B50C-4CE7-BCC5-E6029E22FFCF}.Release|Win32.ActiveCfg = Release|Win32
 		{68B3A976-B50C-4CE7-BCC5-E6029E22FFCF}.Release|Win32.Build.0 = Release|Win32
+		{17242E9C-B454-4A6B-AD94-78BBB781912C}.Debug|Win32.ActiveCfg = Debug|Win32
+		{17242E9C-B454-4A6B-AD94-78BBB781912C}.Debug|Win32.Build.0 = Debug|Win32
+		{17242E9C-B454-4A6B-AD94-78BBB781912C}.Release|Win32.ActiveCfg = Release|Win32
+		{17242E9C-B454-4A6B-AD94-78BBB781912C}.Release|Win32.Build.0 = Release|Win32
+		{8C03B83D-A225-4021-8763-98279321516E}.Debug|Win32.ActiveCfg = Debug|Win32
+		{8C03B83D-A225-4021-8763-98279321516E}.Debug|Win32.Build.0 = Debug|Win32
+		{8C03B83D-A225-4021-8763-98279321516E}.Release|Win32.ActiveCfg = Release|Win32
+		{8C03B83D-A225-4021-8763-98279321516E}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
