@@ -71,6 +71,7 @@ namespace moz
 		void Thread::JoinSleep(void)
 		{
 			Exit();
+			Sleep(1);
 			WaitForSingleObject(m_hThread, INFINITE);
 			Sleep(1);
 		}

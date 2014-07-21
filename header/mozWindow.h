@@ -15,6 +15,7 @@
 //------------------------------------------------------------------------------
 #include <Windows.h>
 #include <map>
+#include <d3dx9.h>
 
 #ifdef _DEBUG
 #pragma comment(lib, "lib/mozWindow_d.lib")
@@ -32,6 +33,9 @@ namespace moz
 {
 	namespace window
 	{
+		//==============================================================================
+		// Window表示するだけ
+		//------------------------------------------------------------------------------
 		class window
 		{
 		public:
@@ -40,27 +44,33 @@ namespace moz
 			typedef std::map<HWND, window*> ProcMap;
 
 			// コンストラクタ
-			window(HINSTANCE hInstance, const char * windowName, const char * className = "mozWindow", unsigned int width = 1280, unsigned int height = 720);
+			window(HINSTANCE hInstance, const char * windowName, const char * className = "mozWindow", unsigned int width = 1280u, unsigned int height = 720u);
 
 			// デストラクタ
 			virtual ~window();
 
-			// これを呼ぶ
+			// これを呼ぶと走りだす
 			int run(void);
 
-			// プロシージャ
-			static LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-
 			// ハンドル取得
-			inline HWND GetHWnd(void){ return _hWnd; }
-			inline HINSTANCE GetHInstance(void){ return _hInstance; }
+			inline HWND GetHWnd(void) const { return _hWnd; }
+			inline HINSTANCE GetHInstance(void) const { return _hInstance; }
 
 			// サイズ取得
-			inline unsigned int GetWidth(void){ return _width; }
-			inline unsigned int GetHeight(void){ return _height; }
+			inline unsigned int GetWidth(void) const { return _width; }
+			inline unsigned int GetHeight(void) const { return _height; }
 
 			// ウィンドウの名前を変える
 			void SetWindowName(const char *);
+
+			// 終了させる
+			void Exit(void){ _IsEnd = true; }
+
+			// アクティブかどうか
+			bool GetActive(void){ return m_bActive; }
+
+			// プロシージャ
+			virtual void _wndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) = 0;
 
 		private:
 			// ハンドル
@@ -79,20 +89,65 @@ namespace moz
 			static ProcMap _procMap;
 			static window* _firstWindow;
 
+			// 画面がアクティブかどうか
+			bool m_bActive;
+			void SetActive(bool);
+
 			// 終了フラグ
 			bool _IsEnd;
 
 		protected:
-			// プロシージャ
-			virtual void _wndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) = 0;
-
 			// Update
 			virtual void Update(void){};
 			virtual void Init(void){};
 			virtual void Uninit(void){};
+		};
 
-			// 終了させる
-			void Exit(void){ _IsEnd = true; }
+		//==============================================================================
+		// DirectX
+		//------------------------------------------------------------------------------
+		class DirectX
+		{
+		public:
+
+			// コンストラクタ
+			DirectX(window* window, bool bWindowMode = true);
+			// デストラクタ
+			~DirectX();
+
+			// デバイス取得
+			LPDIRECT3DDEVICE9 GetDevice(void){ return m_pDevice; }
+
+			// 全画面モード と ウインドウモードを切り替える
+			void FlipScreenMode(void);
+
+			// 動かす
+			// 引数　：　終了フラグを入れておくポインタ
+			void run(bool* isExit);
+
+		protected:
+			// オーバーライドすれば読み込むよー
+			virtual void Init(void)  {};
+			virtual void Update(void){};
+			virtual void Draw(void)  {};
+			virtual void Uninit(void){};
+
+		private:
+			// デバイス復元処理
+			void DeviceTryBack(void);
+			
+			// Deviceオブジェクト(描画に必要)
+			LPDIRECT3DDEVICE9		m_pDevice;
+
+			// スクリーンモード
+			bool m_bWindowMode;
+			D3DPRESENT_PARAMETERS m_d3dpp;
+
+			// DirectXデバイスLOSTフラグ
+			bool m_IsDeviceLost;
+
+			// Windowポインタ
+			window* m_pWindow;
 		};
 	}
 }

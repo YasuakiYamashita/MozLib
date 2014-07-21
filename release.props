@@ -12,6 +12,7 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <ForcedIncludeFiles>mozCommon.h</ForcedIncludeFiles>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>false</GenerateDebugInformation>

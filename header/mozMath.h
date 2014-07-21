@@ -50,7 +50,9 @@ namespace moz
 		static const float kRCPTWOPI = 0.159154943f;
 		#define ToRadian( deg ) ((deg) * (kPI / 180.f))
 		#define ToDegree( rad ) ((rad) * (180.f / kPI))
+		#ifndef POW2
 		#define POW2(x) ((x)*(x))
+		#endif
 
 		//==============================================================================
 		// ユーティリティ

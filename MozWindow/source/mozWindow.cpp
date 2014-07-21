@@ -9,6 +9,16 @@
 // include
 //******************************************************************************
 #include "mozWindow.h"
+#include <functional>
+
+
+struct o
+{
+	WNDPROC operator()(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+	{
+		return [&](HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)->LRESULT{return 0; };
+	}
+};
 
 namespace moz
 {
@@ -30,12 +40,39 @@ namespace moz
 			, _className(className)
 			, _IsEnd(false)
 		{
+
+			WNDPROC func = [=](HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) -> LRESULT
+			{
+				window * _window = (window *)GetWindowLong(hWnd, GWL_USERDATA);
+
+				// メッセージ判定
+				switch (uMsg)
+				{
+					// 終了メッセージ
+				case WM_DESTROY:
+					PostQuitMessage(0);
+					break;
+
+				case WM_ACTIVATE:
+					_window->SetActive(LOWORD(wParam) != 0);
+					break;
+				}
+
+				if (_window)
+				{
+					_window->_wndProc(hWnd, uMsg, wParam, lParam);
+				}
+
+				// システムに処理を依頼
+				return DefWindowProc(hWnd, uMsg, wParam, lParam);
+			};
+
 			// ウィンドウクラスの作成
 			WNDCLASSEX wcex =
 			{
 				sizeof(WNDCLASSEX),
 				CS_CLASSDC,
-				WndProc,
+				func,
 				0,
 				0,
 				hInstance,
@@ -79,6 +116,9 @@ namespace moz
 			ShowWindow(_hWnd, SW_SHOWDEFAULT);
 			UpdateWindow(_hWnd);
 
+			// thisを登録しておく
+			SetWindowLong(_hWnd, GWL_USERDATA, (LONG)this);
+
 			// 最初だけ入れておく
 			if (_firstWindow == nullptr)
 			{
@@ -111,6 +151,8 @@ namespace moz
 				}
 			}
 
+			SetWindowLong(_hWnd, GWL_USERDATA, (LONG)nullptr);
+
 			// ウィンドウクラスの登録を解除
 			UnregisterClass(_className, _hInstance);
 			// 分解能を戻す
@@ -122,42 +164,19 @@ namespace moz
 		//------------------------------------------------------------------------------
 		void window::SetWindowName(const char* name)
 		{
-			SetWindowText(_hWnd, name);
+			if (!_IsEnd)
+			{
+				SetWindowText(_hWnd, name);
+			}
 		}
 
+
 		//==============================================================================
-		// ウィンドウプロシージャ
+		// SetActive
 		//------------------------------------------------------------------------------
-		LRESULT CALLBACK window::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+		void window::SetActive(bool active)
 		{
-
-			// メッセージ判定
-			switch (uMsg)
-			{
-				// 終了メッセージ
-			case WM_DESTROY:
-				PostQuitMessage(0);
-				break;
-
-			}
-
-			if (_procMap.size() == 1 && _firstWindow)
-			{
-				_firstWindow->_wndProc(hWnd, uMsg, wParam, lParam);
-			}
-
-			else
-			{
-				auto it = _procMap.find(hWnd);
-
-				if (it != _procMap.end())
-				{
-					it->second->_wndProc(hWnd, uMsg, wParam, lParam);
-				}
-			}
-
-			// システムに処理を依頼
-			return DefWindowProc(hWnd, uMsg, wParam, lParam);
+			m_bActive = active;
 		}
 
 		//==============================================================================
@@ -188,16 +207,17 @@ namespace moz
 				}
 				else if (_IsEnd)
 				{
-					break;
+					Uninit();
+					PostQuitMessage(0);
 				}
 				else 
 				{
 					// Updateする
 					Update();
+					Sleep(1);
 				}	
 			}	// メッセージループ終了
 
-			Uninit();
 			return (int)msg.wParam;
 		}
 	}
