@@ -10,6 +10,7 @@
 //******************************************************************************
 #include <mozCommon.h>
 #include "mozWindow.h"
+#include <stdio.h>
 
 //------------------------------------------------------------------------------
 // デバイス取得
@@ -25,11 +26,8 @@ namespace moz
 			: m_bWindowMode(bWindowMode)
 			, m_pWindow(_window)
 			, m_IsDeviceLost(false)
+			, m_fullChenge(false)
 		{
-			// デバイスパラメータ用のローカル変数
-			D3DDISPLAYMODE d3ddm;
-
-
 			// Direct3Dオブジェクトの作成
 			LPDIRECT3D9 pD3D = Direct3DCreate9(D3D_SDK_VERSION);
 			if (pD3D == NULL)
@@ -41,7 +39,7 @@ namespace moz
 			}
 
 			// 現在のディスプレイモードを取得
-			if (FAILED(pD3D->GetAdapterDisplayMode(D3DADAPTER_DEFAULT, &d3ddm)))
+			if (FAILED(pD3D->GetAdapterDisplayMode(D3DADAPTER_DEFAULT, &m_d3ddm)))
 			{
 				// 取得失敗
 				MessageBox(m_pWindow->GetHWnd(), TEXT("現在のディスプレイモードの取得に失敗しました"), TEXT("警告"), MB_OK);
@@ -50,29 +48,47 @@ namespace moz
 			}
 
 			// デバイスのプレゼンテーションパラメータの設定
-			ZeroMemory(&m_d3dpp, sizeof(m_d3dpp));						// ワークをゼロクリア
-			m_d3dpp.BackBufferWidth			= m_pWindow->GetWidth();	// ゲーム画面サイズ(幅)
-			m_d3dpp.BackBufferHeight		= m_pWindow->GetHeight();	// ゲーム画面サイズ(高さ)
-			m_d3dpp.BackBufferFormat		= d3ddm.Format;				// バックバッファフォーマットはディスプレイモードに合わせて使う
-			m_d3dpp.BackBufferCount			= 1;						// バックバッファの数
-			m_d3dpp.SwapEffect				= D3DSWAPEFFECT_DISCARD;	// 映像信号に同期してフリップする
-			m_d3dpp.Windowed				= bWindowMode;				// ウィンドウモード
-			m_d3dpp.hDeviceWindow			= m_pWindow->GetHWnd();		// ウインドウデバイス
-			m_d3dpp.EnableAutoDepthStencil	= TRUE;						// デプスバッファ（Ｚバッファ）とステンシルバッファを作成
-			m_d3dpp.AutoDepthStencilFormat	= D3DFMT_D16;				// デプスバッファとして16bitを使う
-			m_d3dpp.Flags					= 0;						// フラグ
-			m_d3dpp.MultiSampleType			= D3DMULTISAMPLE_NONE;		// マルチサンプル
-			m_d3dpp.MultiSampleQuality		= 0;						// マルチサンプル
+			ZeroMemory(&m_d3dppWindow, sizeof(m_d3dppWindow));						// ワークをゼロクリア
+			m_d3dppWindow.BackBufferWidth				= 0;						// ゲーム画面サイズ(幅)
+			m_d3dppWindow.BackBufferHeight				= 0;						// ゲーム画面サイズ(高さ)
+			m_d3dppWindow.BackBufferFormat				= D3DFMT_UNKNOWN;			// バックバッファフォーマットはディスプレイモードに合わせて使う
+			m_d3dppWindow.BackBufferCount				= 1;						// バックバッファの数
+			m_d3dppWindow.SwapEffect					= D3DSWAPEFFECT_DISCARD;	// 映像信号に同期してフリップする
+			m_d3dppWindow.Windowed						= TRUE;						// ウィンドウモード
+			m_d3dppWindow.hDeviceWindow					= m_pWindow->GetHWnd();		// ウインドウデバイス
+			m_d3dppWindow.EnableAutoDepthStencil		= FALSE;					// デプスバッファ（Ｚバッファ）とステンシルバッファを作成
+			m_d3dppWindow.AutoDepthStencilFormat		= D3DFMT_A1R5G5B5;			// デプスバッファとして16bitを使う
+			m_d3dppWindow.Flags							= 0;						// フラグ
+			m_d3dppWindow.MultiSampleType				= D3DMULTISAMPLE_NONE;		// マルチサンプル
+			m_d3dppWindow.MultiSampleQuality			= 0;						// マルチサンプル
+			m_d3dppWindow.FullScreen_RefreshRateInHz	= 0;
+			m_d3dppWindow.PresentationInterval			= D3DPRESENT_INTERVAL_IMMEDIATE;
 
+			// デバイスのプレゼンテーションパラメータの設定
+			ZeroMemory(&m_d3dppFull, sizeof(m_d3dppFull));						// ワークをゼロクリア
+			m_d3dppFull.BackBufferWidth				= m_d3ddm.Width;		// ゲーム画面サイズ(幅)
+			m_d3dppFull.BackBufferHeight			= m_d3ddm.Height;		// ゲーム画面サイズ(高さ)
+			m_d3dppFull.BackBufferFormat			= m_d3ddm.Format;			// バックバッファフォーマットはディスプレイモードに合わせて使う
+			m_d3dppFull.BackBufferCount				= 1;						// バックバッファの数
+			m_d3dppFull.SwapEffect					= D3DSWAPEFFECT_DISCARD;	// 映像信号に同期してフリップする
+			m_d3dppFull.Windowed					= FALSE;					// ウィンドウモード
+			m_d3dppFull.hDeviceWindow				= m_pWindow->GetHWnd();		// ウインドウデバイス
+			m_d3dppFull.EnableAutoDepthStencil		= FALSE;					// デプスバッファ（Ｚバッファ）とステンシルバッファを作成
+			m_d3dppFull.AutoDepthStencilFormat		= D3DFMT_A1R5G5B5;			// デプスバッファとして16bitを使う
+			m_d3dppFull.Flags						= 0;						// フラグ
+			m_d3dppFull.MultiSampleType				= D3DMULTISAMPLE_NONE;		// マルチサンプル
+			m_d3dppFull.MultiSampleQuality			= 0;						// マルチサンプル
+			m_d3dppFull.FullScreen_RefreshRateInHz	= 0;
+			m_d3dppFull.PresentationInterval		= D3DPRESENT_INTERVAL_IMMEDIATE;
+
+			// ポインタで分ける
 			if (m_bWindowMode)
-			{// ウィンドウモード
-				m_d3dpp.FullScreen_RefreshRateInHz = 0;								// リフレッシュレート
-				m_d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;			// インターバル
+			{
+				m_d3dpp = &m_d3dppWindow;
 			}
 			else
-			{// フルスクリーンモード
-				m_d3dpp.FullScreen_RefreshRateInHz = D3DPRESENT_RATE_DEFAULT;			// リフレッシュレート
-				m_d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_DEFAULT;			// インターバル
+			{
+				m_d3dpp = &m_d3dppFull;
 			}
 
 			// デバイスオブジェクトの生成
@@ -81,7 +97,7 @@ namespace moz
 				D3DDEVTYPE_HAL,
 				m_pWindow->GetHWnd(),
 				D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED,
-				&m_d3dpp, &m_pDevice)))
+				m_d3dpp, &m_pDevice)))
 			{
 				// 取得失敗
 				MessageBox(m_pWindow->GetHWnd(), TEXT("デバイスオブジェクトの生成に失敗しました\r\n動作環境が古い可能性があります"), TEXT("警告"), MB_OK);
@@ -91,16 +107,16 @@ namespace moz
 			}
 
 			// レンダーステートパラメータの設定
-			m_pDevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);				// 裏面をカリング
-			m_pDevice->SetRenderState(D3DRS_ZENABLE, TRUE);						// Zバッファを使用
+			m_pDevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);					// 裏面をカリング
+			m_pDevice->SetRenderState(D3DRS_ZENABLE, TRUE);							// Zバッファを使用
 			m_pDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);				// αブレンドを行う
 			m_pDevice->SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_ADD);				// αブレンドの種類
 			m_pDevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);			// αソースカラーの指定
 			m_pDevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);		// αデスティネーションカラーの指定
 
 			// サンプラーステートパラメータの設定
-			m_pDevice->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_WRAP);	// テクスチャアドレッシング方法(U値)を設定
-			m_pDevice->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_WRAP);	// テクスチャアドレッシング方法(V値)を設定
+			m_pDevice->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_WRAP);		// テクスチャアドレッシング方法(U値)を設定
+			m_pDevice->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_WRAP);		// テクスチャアドレッシング方法(V値)を設定
 			m_pDevice->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);		// テクスチャ縮小フィルタモードを設定
 			m_pDevice->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);		// テクスチャ拡大フィルタモードを設定
 
@@ -121,7 +137,6 @@ namespace moz
 			// デリート
 			SAFE_RELEASE(m_pDevice);
 		}
-
 
 		//==============================================================================
 		// 動作
@@ -154,6 +169,9 @@ namespace moz
 				// デバイスを奪い返す
 				DeviceTryBack();
 
+				// 全画面モードとウィンドウモードを切り替える
+				_FlipScreenMode();
+
 				if (!m_IsDeviceLost)
 				{
 					// 0.5秒ごとにFPSを計測
@@ -164,10 +182,12 @@ namespace moz
 						dwFPSLastTime = dwCurrentTime;	// FPS計測した時間を記録
 						dwFrameCount = 0;				// 秒間フレーム数をリセット
 
+#ifdef _DEBUG
 						// ウィンドウ名を設定
 						char cText[256];
-						sprintf_s(cText, "%dfps:", fps);
+						sprintf_s(cText, "%dfps", fps);
 						m_pWindow->SetWindowName(cText);
+#endif
 
 					}
 
@@ -216,51 +236,57 @@ namespace moz
 			Uninit();
 
 		}
-
 		//==============================================================================
 		// 全画面とウインドウを切り替える
 		//------------------------------------------------------------------------------
-		void DirectX::FlipScreenMode(void)
+		void DirectX::_FlipScreenMode(void)
 		{
+			if (!m_fullChenge)
+			{
+				return;
+			}
+			m_fullChenge = false;
+
+			// TODO: デバイスロストした時にバグる。
+			// ちゃんとやるのならデバイスロスト処理追加してねー
+
 			m_bWindowMode = !m_bWindowMode;
+			HWND hWnd = m_pWindow->GetHWnd();
+
+			if (m_bWindowMode)
+			{
+				// ウィンドウモード
+				m_d3dpp = &m_d3dppWindow;
+			}
+			else
+			{
+				// フルスクリーンモード
+				m_d3dpp = &m_d3dppFull;
+			}
+
+			// デバイスリセット
+			HRESULT hr = m_pDevice->Reset(m_d3dpp);
+			if (FAILED(hr))
+			{
+				if (hr == D3DERR_DEVICELOST)
+					m_IsDeviceLost = true;
+				else
+					m_pWindow->Exit();
+				return;
+			}
 
 			RECT rect;
 			GetWindowRect(m_pWindow->GetHWnd(), &rect);
-
-			if (m_bWindowMode)
-			{// ウィンドウモード
-				m_d3dpp.FullScreen_RefreshRateInHz = 0;								// リフレッシュレート
-				m_d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;		// インターバル
-				m_d3dpp.Windowed = TRUE;
-			}
-			else
-			{// フルスクリーンモード
-				m_d3dpp.FullScreen_RefreshRateInHz = D3DPRESENT_RATE_DEFAULT;		// リフレッシュレート
-				m_d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_DEFAULT;			// インターバル
-				m_d3dpp.Windowed = FALSE;
-			}
-
-
-			D3DPRESENT_PARAMETERS de = m_d3dpp;
-			// ちょいスリープ
-			Sleep(5);
-
-			HRESULT hr = m_pDevice->Reset(&de);
-
-			if (hr == D3DERR_DEVICELOST)
-			{
-				m_IsDeviceLost = true;
-			}
 
 			if (m_bWindowMode)
 			{
 				SetWindowLong(m_pWindow->GetHWnd(), GWL_STYLE, WS_OVERLAPPEDWINDOW & ~(WS_THICKFRAME | WS_MAXIMIZEBOX));
 				SetWindowPos(m_pWindow->GetHWnd(),
 					HWND_NOTOPMOST,                           //フルスクリーンは最前面表示されているので、解除する。
-					rect.left,
-					rect.top,
-					rect.right - rect.left,
-					rect.bottom - rect.top,
+					0,
+					0,
+					m_pWindow->GetWidth(),
+					m_pWindow->GetHeight(),
 					SWP_SHOWWINDOW);
 			}
 			else
@@ -273,9 +299,15 @@ namespace moz
 					rect.right - rect.left,
 					rect.bottom - rect.top,
 					SWP_SHOWWINDOW);
-
 			}
+		}
 
+		//==============================================================================
+		// 全画面とウインドウを切り替える
+		//------------------------------------------------------------------------------
+		void DirectX::FlipScreenMode(void)
+		{
+			m_fullChenge = true;
 		}
 
 		//==============================================================================
@@ -284,10 +316,8 @@ namespace moz
 		void DirectX::DeviceTryBack(void)
 		{
 			// デバイスがロストした場合
-			if (m_IsDeviceLost && m_pWindow->GetActive())
+			if (m_IsDeviceLost)
 			{
-				Sleep(100); // 0.1秒待つ
-
 				// デバイス状態のチェック
 				HRESULT hr = m_pDevice->TestCooperativeLevel();
 				if (FAILED(hr))
@@ -298,7 +328,7 @@ namespace moz
 					if (hr != D3DERR_DEVICENOTRESET)
 						m_pWindow->Exit(); // エラー
 
-					hr = m_pDevice->Reset(&m_d3dpp); // 復元を試みる
+					hr = m_pDevice->Reset(m_d3dpp); // 復元を試みる
 					if (FAILED(hr))
 					{
 						if (hr == D3DERR_DEVICELOST)

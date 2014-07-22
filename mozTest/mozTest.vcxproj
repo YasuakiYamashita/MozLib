@@ -44,14 +44,14 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Users\AT11-yasuaki\Desktop\share\MozLib\header;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\AT11-yasuaki\Desktop\share\MozLib;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\yyasu1112\Desktop\Git\MozLib\header;C:\Users\AT11-yasuaki\Desktop\share\MozLib\header;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\yyasu1112\Desktop\Git\MozLib;C:\Users\AT11-yasuaki\Desktop\share\MozLib;$(LibraryPath)</LibraryPath>
     <TargetExt>.exe</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>C:\Users\AT11-yasuaki\Desktop\share\MozLib\header;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\AT11-yasuaki\Desktop\share\MozLib;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\yyasu1112\Desktop\Git\MozLib\header;C:\Users\AT11-yasuaki\Desktop\share\MozLib\header;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\yyasu1112\Desktop\Git\MozLib;C:\Users\AT11-yasuaki\Desktop\share\MozLib;$(LibraryPath)</LibraryPath>
     <TargetExt>.exe</TargetExt>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

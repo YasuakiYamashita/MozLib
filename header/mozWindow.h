@@ -14,7 +14,6 @@
 // include
 //------------------------------------------------------------------------------
 #include <Windows.h>
-#include <map>
 #include <d3dx9.h>
 
 #ifdef _DEBUG
@@ -40,8 +39,6 @@ namespace moz
 		{
 		public:
 
-			// 別名
-			typedef std::map<HWND, window*> ProcMap;
 
 			// コンストラクタ
 			window(HINSTANCE hInstance, const char * windowName, const char * className = "mozWindow", unsigned int width = 1280u, unsigned int height = 720u);
@@ -72,6 +69,12 @@ namespace moz
 			// プロシージャ
 			virtual void _wndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) = 0;
 
+			// 現在のウインドウモード
+			bool GetWindowMode(void){ return _bWindowMode; }
+
+			// フルスクリーンモード
+			void FlipWindowMode(void);
+
 		private:
 			// ハンドル
 			HINSTANCE	_hInstance;
@@ -85,16 +88,15 @@ namespace moz
 			// windowClass
 			const char* _className;
 
-			// hWndとプロシージャの対応づけ
-			static ProcMap _procMap;
-			static window* _firstWindow;
-
 			// 画面がアクティブかどうか
 			bool m_bActive;
 			void SetActive(bool);
 
 			// 終了フラグ
 			bool _IsEnd;
+
+			// フルスクリーンモード
+			bool _bWindowMode;
 
 		protected:
 			// Update
@@ -141,10 +143,21 @@ namespace moz
 
 			// スクリーンモード
 			bool m_bWindowMode;
-			D3DPRESENT_PARAMETERS m_d3dpp;
+			D3DPRESENT_PARAMETERS m_d3dppFull;
+			D3DPRESENT_PARAMETERS m_d3dppWindow;
+			D3DPRESENT_PARAMETERS *m_d3dpp;
+
+			// 今のディスプレイモード
+			D3DDISPLAYMODE m_d3ddm;
 
 			// DirectXデバイスLOSTフラグ
 			bool m_IsDeviceLost;
+
+			// フラグ
+			void _FlipScreenMode(void);
+			
+			// フルスクリーンに変えるフラグ
+			bool m_fullChenge;
 
 			// Windowポインタ
 			window* m_pWindow;

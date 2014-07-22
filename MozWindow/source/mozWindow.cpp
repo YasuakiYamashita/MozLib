@@ -9,27 +9,11 @@
 // include
 //******************************************************************************
 #include "mozWindow.h"
-#include <functional>
-
-
-struct o
-{
-	WNDPROC operator()(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-	{
-		return [&](HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)->LRESULT{return 0; };
-	}
-};
 
 namespace moz
 {
 	namespace window
 	{
-		//==============================================================================
-		// プロシージャをひもづけるだけ
-		//------------------------------------------------------------------------------
-		std::map<HWND, window*> window::_procMap;
-		window* window::_firstWindow = nullptr;
-
 		//==============================================================================
 		// コンストラクタ
 		//------------------------------------------------------------------------------
@@ -39,9 +23,12 @@ namespace moz
 			, _hInstance(hInstance)
 			, _className(className)
 			, _IsEnd(false)
+			, _bWindowMode(false)
 		{
-
-			WNDPROC func = [=](HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) -> LRESULT
+			//==============================================================================
+			// Windowsプロシージャ
+			//------------------------------------------------------------------------------
+			WNDPROC func = [](HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) -> LRESULT
 			{
 				window * _window = (window *)GetWindowLong(hWnd, GWL_USERDATA);
 
@@ -55,6 +42,13 @@ namespace moz
 
 				case WM_ACTIVATE:
 					_window->SetActive(LOWORD(wParam) != 0);
+					
+					// 全面表示を解除
+					if (!_window->GetActive() && _window->GetWindowMode())
+					{
+						_window->FlipWindowMode();
+					}
+					
 					break;
 				}
 
@@ -118,15 +112,6 @@ namespace moz
 
 			// thisを登録しておく
 			SetWindowLong(_hWnd, GWL_USERDATA, (LONG)this);
-
-			// 最初だけ入れておく
-			if (_firstWindow == nullptr)
-			{
-				_firstWindow = this;
-			}
-
-			// map
-			_procMap.insert(ProcMap::value_type(_hWnd, this));
 		}
 
 		//==============================================================================
@@ -134,27 +119,12 @@ namespace moz
 		//------------------------------------------------------------------------------
 		window::~window()
 		{
-			// 
-			auto it = _procMap.find(_hWnd);
-			if (it != _procMap.end())
-				_procMap.erase(it);
-
-			// 自分がfirstウィンドウだったら
-			if (this == _firstWindow)
-			{
-				_firstWindow = nullptr;	
-
-				// まだウインドウがあったらfirstWindowに追加しておく
-				if (!_procMap.empty())
-				{
-					_firstWindow = _procMap.begin()->second;
-				}
-			}
-
+			// 自分のポインター解除
 			SetWindowLong(_hWnd, GWL_USERDATA, (LONG)nullptr);
 
 			// ウィンドウクラスの登録を解除
 			UnregisterClass(_className, _hInstance);
+
 			// 分解能を戻す
 			timeEndPeriod(1);
 		}
@@ -219,6 +189,56 @@ namespace moz
 			}	// メッセージループ終了
 
 			return (int)msg.wParam;
+		}
+
+		//==============================================================================
+		// フルスクリーンとウインドウモード切り替え
+		//------------------------------------------------------------------------------
+		void window::FlipWindowMode(void)
+		{
+
+			//==============================================================
+			// DirectXの機能を使っていないので健康的
+			//==============================================================
+
+			if (!_bWindowMode)
+			{
+				DEVMODE devMod;
+				ZeroMemory(&devMod, sizeof(devMod));
+				devMod.dmSize = sizeof(devMod);
+				devMod.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT | DM_DISPLAYFREQUENCY | DM_DISPLAYFLAGS;
+				devMod.dmPelsWidth = GetSystemMetrics(SM_CXSCREEN);
+				devMod.dmPelsHeight = GetSystemMetrics(SM_CYSCREEN);
+				devMod.dmBitsPerPel = 32;
+				devMod.dmDisplayFrequency = 60;
+				devMod.dmDisplayFlags = 0;
+
+				int hr = ChangeDisplaySettingsEx(NULL, &devMod, NULL, CDS_TEST | CDS_FULLSCREEN, NULL);
+
+				if (hr == DISP_CHANGE_SUCCESSFUL)
+				{
+					ChangeDisplaySettingsEx(NULL, &devMod, NULL, CDS_FULLSCREEN, NULL);
+				}
+				else
+				{
+					_bWindowMode = false;
+					return;
+				}
+
+				SetWindowLong(_hWnd, GWL_STYLE, GetWindowLong(_hWnd, GWL_STYLE) & ~(WS_CAPTION | WS_BORDER | WS_THICKFRAME));
+				SetWindowLong(_hWnd, GWL_EXSTYLE, GetWindowLong(_hWnd, GWL_EXSTYLE) & ~(WS_EX_CLIENTEDGE | WS_EX_WINDOWEDGE));
+				SetWindowPos(_hWnd, HWND_TOPMOST, 0, 0, devMod.dmPelsWidth, devMod.dmPelsHeight, SWP_SHOWWINDOW);
+				_bWindowMode = true;
+			}
+			// Window mode
+			else
+			{
+				ChangeDisplaySettingsEx(NULL, NULL, NULL, 0, NULL);
+				SetWindowLong(_hWnd, GWL_STYLE, WS_OVERLAPPEDWINDOW & ~(WS_THICKFRAME | WS_MAXIMIZEBOX));
+				SetWindowLong(_hWnd, GWL_EXSTYLE, GetWindowLong(_hWnd, GWL_EXSTYLE) | (WS_EX_CLIENTEDGE | WS_EX_WINDOWEDGE));
+				SetWindowPos(_hWnd, HWND_NOTOPMOST, 0, 0, _width, _height, SWP_SHOWWINDOW);
+				_bWindowMode = false;
+			}
 		}
 	}
 }
