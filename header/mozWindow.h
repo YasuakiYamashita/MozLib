@@ -14,7 +14,6 @@
 // include
 //------------------------------------------------------------------------------
 #include <Windows.h>
-#include <d3dx9.h>
 
 #ifdef _DEBUG
 #pragma comment(lib, "lib/mozWindow_d.lib")
@@ -103,64 +102,6 @@ namespace moz
 			virtual void Update(void){};
 			virtual void Init(void){};
 			virtual void Uninit(void){};
-		};
-
-		//==============================================================================
-		// DirectX
-		//------------------------------------------------------------------------------
-		class DirectX
-		{
-		public:
-
-			// コンストラクタ
-			DirectX(window* window, bool bWindowMode = true);
-			// デストラクタ
-			~DirectX();
-
-			// デバイス取得
-			LPDIRECT3DDEVICE9 GetDevice(void){ return m_pDevice; }
-
-			// 全画面モード と ウインドウモードを切り替える
-			void FlipScreenMode(void);
-
-			// 動かす
-			// 引数　：　終了フラグを入れておくポインタ
-			void run(bool* isExit);
-
-		protected:
-			// オーバーライドすれば読み込むよー
-			virtual void Init(void)  {};
-			virtual void Update(void){};
-			virtual void Draw(void)  {};
-			virtual void Uninit(void){};
-
-		private:
-			// デバイス復元処理
-			void DeviceTryBack(void);
-			
-			// Deviceオブジェクト(描画に必要)
-			LPDIRECT3DDEVICE9		m_pDevice;
-
-			// スクリーンモード
-			bool m_bWindowMode;
-			D3DPRESENT_PARAMETERS m_d3dppFull;
-			D3DPRESENT_PARAMETERS m_d3dppWindow;
-			D3DPRESENT_PARAMETERS *m_d3dpp;
-
-			// 今のディスプレイモード
-			D3DDISPLAYMODE m_d3ddm;
-
-			// DirectXデバイスLOSTフラグ
-			bool m_IsDeviceLost;
-
-			// フラグ
-			void _FlipScreenMode(void);
-			
-			// フルスクリーンに変えるフラグ
-			bool m_fullChenge;
-
-			// Windowポインタ
-			window* m_pWindow;
 		};
 	}
 }

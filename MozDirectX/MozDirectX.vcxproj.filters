@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="source">
+      <UniqueIdentifier>{39e33502-76bc-468c-a1c1-4b2ca3d800f7}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\header\mozDirectX.h" />
+    <ClInclude Include="..\header\mozPolygon.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="mozDirectX.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="mozTexture.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="mozPolygon.cpp" />
+  </ItemGroup>
+</Project>

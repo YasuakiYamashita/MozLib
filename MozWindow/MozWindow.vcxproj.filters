@@ -12,8 +12,5 @@
     <ClCompile Include="source\mozWindow.cpp">
       <Filter>source</Filter>
     </ClCompile>
-    <ClCompile Include="source\mozDirectX.cpp">
-      <Filter>source</Filter>
-    </ClCompile>
   </ItemGroup>
 </Project>

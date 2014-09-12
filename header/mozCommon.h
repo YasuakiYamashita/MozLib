@@ -23,7 +23,6 @@
 #define  _ITERATOR_DEBUG_LEVEL 0
 #endif
 
-
 //==============================================================================
 // マクロ関数定義
 //------------------------------------------------------------------------------
@@ -48,6 +47,16 @@
 #ifndef ABS
 #define ABS(n)		((n)<0?-(n):(n))
 #endif
+
+// アサート
+#include <mozAssert.h>
+
+#ifdef _DEBUG
+#pragma comment(lib, "lib/mozCommon_d.lib")
+#else
+#pragma comment(lib, "lib/mozCommon.lib")
+#endif
+
 
 #endif
 //EOF

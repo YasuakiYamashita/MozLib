@@ -11,6 +11,7 @@
 #include <mozCommon.h>
 #include <mozWindow.h>
 #include <mozThread.h>
+#include <mozDirectX.h>
 
 //*****************************************************************************
 // ライブラリのリンク
@@ -40,7 +41,7 @@ public:
 	DWORD _Func(moz::thread::funcData* data)
 	{
 		moz::window::window * _wind = (moz::window::window*)data->data;
-		m_directx = new moz::window::DirectX(_wind, true);
+		m_directx = new moz::DirectX::DirectX(_wind, true);
 
 		// 開始
 		m_directx->run(&data->isExit);
@@ -114,7 +115,7 @@ protected :
 		}
 	}
 
-	moz::window::DirectX* m_directx;
+	moz::DirectX::DirectX* m_directx;
 };
 
 //------------------------------------------------------------------------------

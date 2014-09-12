@@ -11,14 +11,17 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\header\mozWindow.h" />
+    <ClInclude Include="..\header\mozDirectX.h" />
+    <ClInclude Include="..\header\mozPolygon.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\mozWindow.cpp" />
+    <ClCompile Include="mozDirectX.cpp" />
+    <ClCompile Include="mozPolygon.cpp" />
+    <ClCompile Include="mozTexture.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{17242E9C-B454-4A6B-AD94-78BBB781912C}</ProjectGuid>
-    <RootNamespace>MozWindow</RootNamespace>
+    <ProjectGuid>{0FA8EAAE-7DFF-44F3-991D-E5B577541641}</ProjectGuid>
+    <RootNamespace>MozDirectX</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

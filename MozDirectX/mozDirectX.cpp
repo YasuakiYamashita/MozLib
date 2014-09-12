@@ -9,7 +9,7 @@
 // include
 //******************************************************************************
 #include <mozCommon.h>
-#include "mozWindow.h"
+#include "mozDirectX.h"
 #include <stdio.h>
 
 //------------------------------------------------------------------------------
@@ -17,12 +17,12 @@
 //------------------------------------------------------------------------------
 namespace moz
 {
-	namespace window
+	namespace DirectX
 	{
 		//==============================================================================
 		// コンストラクタ
 		//------------------------------------------------------------------------------
-		DirectX::DirectX(window* _window, bool bWindowMode)
+		DirectX::DirectX(moz::window::window* _window, bool bWindowMode)
 			: m_bWindowMode(bWindowMode)
 			, m_pWindow(_window)
 			, m_IsDeviceLost(false)
@@ -328,7 +328,14 @@ namespace moz
 					if (hr != D3DERR_DEVICENOTRESET)
 						m_pWindow->Exit(); // エラー
 
+					// デバイスロスト対応
+					for (auto it = m_DevLost.begin(); it != m_DevLost.end(); ++it)
+					{
+						(*it)->Backup();
+					}
+
 					hr = m_pDevice->Reset(m_d3dpp); // 復元を試みる
+
 					if (FAILED(hr))
 					{
 						if (hr == D3DERR_DEVICELOST)
@@ -338,12 +345,43 @@ namespace moz
 						m_pWindow->Exit();
 					}
 
+
+					// デバイスロスト対応
+					for (auto it = m_DevLost.begin(); it != m_DevLost.end(); ++it)
+					{
+						(*it)->Recover( );
+					}
+
 				}
 				// デバイスが復元した
 				m_IsDeviceLost = false;
 			}
 		}
-	}
+
+		//==============================================================================
+		// デバイスロストリスト追加
+		//------------------------------------------------------------------------------
+		std::list<LostResource*>::iterator DirectX::SetLostResource(LostResource * const resource)
+		{
+			for (auto it = m_DevLost.begin(); it != m_DevLost.end(); ++it)
+			{
+				if ((*it) == resource)
+				{
+					return it;
+				}
+			}
+
+			return m_DevLost.insert(m_DevLost.end(), resource);
+		}
+
+		//==============================================================================
+		// デバイスロストリスト削除
+		//------------------------------------------------------------------------------
+		void DirectX::DelLostResource(std::list<LostResource*>::iterator const it)
+		{
+			m_DevLost.erase(it);
+		}
+	} 
 }
 
 //EOF
