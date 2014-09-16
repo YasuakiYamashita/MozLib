@@ -17,9 +17,12 @@ namespace moz
 		//==============================================================================
 		// Ç±ÇÍÇ©ÇÁåƒÇ‘
 		//------------------------------------------------------------------------------
-		DWORD WINAPI ThreadFunc::Func(void * func)
+		unsigned int WINAPI ThreadFunc::Func(void * func)
 		{
-			return ((funcData*)func)->func->_Func((funcData*)func);
+			int ret = ((funcData*)func)->func->_Func((funcData*)func);
+			// èIóπ
+			_endthreadex( ret );
+			return ret;
 		}
 
 
@@ -35,7 +38,9 @@ namespace moz
 			m_data = new funcData(param, data);
 
 
-			m_hThread = CreateThread(nullptr, 0, ThreadFunc::Func, m_data, m_isSuspend ? CREATE_SUSPENDED : 0, &m_threadId);
+			//m_hThread = CreateThread(nullptr, 0, ThreadFunc::Func, m_data, m_isSuspend ? CREATE_SUSPENDED : 0, &m_threadId);
+			m_hThread = (HANDLE)_beginthreadex(nullptr, 0, ThreadFunc::Func, m_data, m_isSuspend ? CREATE_SUSPENDED : 0, &m_threadId);
+
 
 			if (m_hThread == nullptr) {
 				m_isSuspend = true;

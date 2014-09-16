@@ -13,35 +13,39 @@
 #include <mozDirectX.h>
 #include <mozMath.h>
 
+
+using namespace moz::math;
+
 //==============================================================================
 // ポリゴン表示用
 //------------------------------------------------------------------------------
 namespace moz
 {
+
 	namespace DirectX
 	{
 		// 3D用頂点フォーマット
-		static const D3DVERTEXELEMENT9 3dDecl = 
+		static const D3DVERTEXELEMENT9 Vtx3dDecl[] =
 		{
-			{ 0, 0,	D3DDECLTYPE_FLOAT3,		D3DDECLMETHOD_DEFAULT,	D3DDECLUSAGE_POSITION,	0 },
-			{ 1, 0, D3DDECLTYPE_FLOAT3,		D3DDECLMETHOD_DEFAULT,	D3DDECLUSAGE_NORMAL,	0 },
-			{ 2, 0,	D3DDECLTYPE_D3DCOLOR,	D3DDECLMETHOD_DEFAULT,	D3DDECLUSAGE_COLOR,		0 },
-			{ 3, 0, D3DDECLTYPE_FLOAT2,		D3DDECLMETHOD_DEFAULT,	D3DDECLUSAGE_TEXCOORD,	0 },
+			{ 0, 0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
+			{ 1, 0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_NORMAL, 0 },
+			{ 2, 0, D3DDECLTYPE_D3DCOLOR, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR, 0 },
+			{ 3, 0, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0 },
 			D3DDECL_END()
 		};
 
 		// 2D用頂点フォーマット
-		static const D3DVERTEXELEMENT9 2dDecl =
+		static const D3DVERTEXELEMENT9 Vtx2dDecl[] =
 		{
-			{ 1, 0,	D3DDECLTYPE_FLOAT4,		D3DDECLMETHOD_DEFAULT,	D3DDECLUSAGE_POSITIONT,	0 },
-			{ 2, 0,	D3DDECLTYPE_D3DCOLOR,	D3DDECLMETHOD_DEFAULT,	D3DDECLUSAGE_COLOR,		0 },
-			{ 3, 0,	D3DDECLTYPE_FLOAT2,		D3DDECLMETHOD_DEFAULT,	D3DDECLUSAGE_TEXCOORD,	0 },
+			{ 1, 0, D3DDECLTYPE_FLOAT4, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITIONT, 0 },
+			{ 2, 0, D3DDECLTYPE_D3DCOLOR, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR, 0 },
+			{ 3, 0, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0 },
 			D3DDECL_END()
 		};
 
 		// 静的確保
-		static const k3DPolygonNum = 10000;	// 3Dポリゴン
-		static const k2DPolygonNum = 100;	// 2Dポリゴン
+		static const int k3DPolygonNum = 10000;	// 3Dポリゴン
+		static const int k2DPolygonNum = 100;	// 2Dポリゴン
 
 		//==============================================================================
 		// ポリゴンコンテナ
@@ -55,8 +59,11 @@ namespace moz
 			virtual void Draw() = 0;
 			virtual void Update() = 0;
 
-		private:
+		protected:
 			IDirect3DVertexBuffer9* m_vtxDecl;
+			Vector3D m_rot;
+			Vector3D m_pos;
+			Vector3D m_scl;
 		};
 
 		//==============================================================================
@@ -71,7 +78,21 @@ namespace moz
 			virtual void Draw(void);
 			virtual void Update(void);
 
+		protected:
 
+		};
+
+		//==============================================================================
+		// 2Dポリゴン
+		//------------------------------------------------------------------------------
+		class DrawList2D
+		{
+		public:
+			DrawList2D();
+			virtual ~DrawList2D();
+
+			virtual void Draw(void);
+			virtual void Update(void);
 		};
 
 		//==============================================================================
@@ -80,14 +101,12 @@ namespace moz
 		class PolygonManager
 		{
 		public:
-			PolygonManager();
+			PolygonManager(DirectX *);
 			virtual ~PolygonManager();
 
 			// いつもの
 			void Update(void);
 			void Draw(void);
-
-
 
 		private:
 			std::list<DrawList*> m_2DPolygonList;
@@ -99,8 +118,10 @@ namespace moz
 			IDirect3DVertexBuffer9* m_3Dvtx;
 			IDirect3DVertexBuffer9* m_Effectvtx;
 
+			LPDIRECT3DVERTEXDECLARATION9 m_p3DDec;
+			LPDIRECT3DVERTEXDECLARATION9 m_p2DDec;
 
-
+			DirectX* m_pDirectX;
 		};
 
 		

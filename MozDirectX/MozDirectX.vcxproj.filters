@@ -16,6 +16,8 @@
     <ClCompile Include="mozTexture.cpp">
       <Filter>source</Filter>
     </ClCompile>
-    <ClCompile Include="mozPolygon.cpp" />
+    <ClCompile Include="mozPolygon.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

@@ -51,7 +51,7 @@
 	BLAKEPOINT/*ブレークポイント呼び出し*/\
 }
 #else
-STRONG_ASSERT(exp,format,...) (exp)
+#define STRONG_ASSERT(exp,format,...) (exp)
 #endif
 
 void MyAssert(char *pExp, char *pFileName, int nLine, char *pFormat, ...);

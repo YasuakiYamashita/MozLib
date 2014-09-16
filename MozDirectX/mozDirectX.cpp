@@ -315,18 +315,20 @@ namespace moz
 		//------------------------------------------------------------------------------
 		void DirectX::DeviceTryBack(void)
 		{
+			m_pDevice->CheckDeviceState
 			// デバイスがロストした場合
 			if (m_IsDeviceLost)
 			{
 				// デバイス状態のチェック
 				HRESULT hr = m_pDevice->TestCooperativeLevel();
+
 				if (FAILED(hr))
 				{
 					if (hr == D3DERR_DEVICELOST)
 						return ;  // デバイスはまだ失われている
 
 					if (hr != D3DERR_DEVICENOTRESET)
-						m_pWindow->Exit(); // エラー
+						return;//m_pWindow->Exit(); // エラー
 
 					// デバイスロスト対応
 					for (auto it = m_DevLost.begin(); it != m_DevLost.end(); ++it)
@@ -342,7 +344,7 @@ namespace moz
 							return ; // デバイスはまだ失われている
 
 						// エラー
-						m_pWindow->Exit();
+						//m_pWindow->Exit();
 					}
 
 

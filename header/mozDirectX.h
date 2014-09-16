@@ -105,6 +105,7 @@ namespace moz
 			// デバイスロスト用
 			std::list<LostResource*> m_DevLost;
 
+		protected:
 			// Windowポインタ
 			moz::window::window* m_pWindow;
 		};

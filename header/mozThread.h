@@ -21,6 +21,7 @@
 // include
 //------------------------------------------------------------------------------
 #include <Windows.h>
+#include <process.h>
 
 namespace moz
 {
@@ -45,8 +46,8 @@ namespace moz
 		class ThreadFunc
 		{
 		public:
-			static DWORD WINAPI Func(void *);
-
+			static unsigned int WINAPI Func(void *);
+	
 		private:
 			virtual DWORD _Func(funcData *) = 0;
 		};
@@ -75,10 +76,10 @@ namespace moz
 			// 終了させる
 			void Exit(void){ m_data->isExit = true; }
 		private:
-			HANDLE m_hThread;	// スレッドハンドル
-			DWORD m_threadId;	// スレッドID
-			bool m_isSuspend;	// サスペンド状態か
-			funcData* m_data;
+			HANDLE			m_hThread;		// スレッドハンドル
+			unsigned int	m_threadId;		// スレッドID
+			bool			m_isSuspend;		// サスペンド状態か
+			funcData*		m_data;
 		};
 
 	}
