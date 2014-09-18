@@ -47,7 +47,7 @@ namespace moz
 
 		// 静的確保
 		static const int k3DMaxBuffer = 400;	// 3Dポリゴン
-		static const int k2DMaxBuffer = 40000;	// 2Dポリゴン
+		static const int k2DMaxBuffer = 4000;	// 2Dポリゴン
 
 		//==============================================================================
 		// ポリゴンコンテナ
@@ -157,22 +157,24 @@ namespace moz
 
 			//===================================
 			// 2D使用
-			IDirect3DVertexBuffer9* m_2Dvtx;
-			IDirect3DVertexBuffer9* m_2Dcol;
-			IDirect3DVertexBuffer9* m_2Dtex;
 			struct {
-				Vector3D* vtx;
-				Color* col;
-				Vector2D* tex;
-				unsigned int num;
-			} m_2DLockBuff;
-			unsigned int m_2DusingNum;
-			LPD3DXEFFECT m_2DEffect;
+				IDirect3DVertexBuffer9* _vtx;
+				IDirect3DVertexBuffer9* _col;
+				IDirect3DVertexBuffer9* _tex;
+			} m_2DVtxBuff;				// 描画用バッファ 
+			struct {
+				Vector3D*		vtx;
+				Color*			col;
+				Vector2D*		tex;
+				unsigned int	num;
+			} m_2DLockBuff;				// 使用するバッファ
+			unsigned int m_2DusingNum;	// 使用した数
+			LPD3DXEFFECT m_2DEffect;	// シェーダ用
 			struct {
 				D3DXHANDLE proj;
 				D3DXHANDLE pos;
 				D3DXHANDLE rot;
-			} m_2DHandle;
+			} m_2DHandle;				// ハンドル
 
 			//===================================
 			// 3D使用

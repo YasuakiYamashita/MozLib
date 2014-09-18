@@ -24,6 +24,7 @@ namespace moz
 			: m_pDirectX(dev)
 			, m_2DusingNum(0u)
 			, m_2DLockBuff({ nullptr, nullptr, nullptr })
+			, m_2DVtxBuff({ nullptr, nullptr, nullptr })
 		{
 			LPDIRECT3DDEVICE9 pDevice =  m_pDirectX->GetDevice();
 
@@ -38,7 +39,7 @@ namespace moz
 			LPD3DXBUFFER pError;
 
 			// シェーダコンパイル
-			if (FAILED(D3DXCreateEffectFromFile(pDevice, "test.fx", NULL, NULL, D3DXSHADER_SKIPVALIDATION, NULL, &m_2DEffect, &pError)))
+			if (FAILED(D3DXCreateEffectFromFile(pDevice, "./data/fx/2d.fx", NULL, NULL, D3DXSHADER_SKIPVALIDATION, NULL, &m_2DEffect, &pError)))
 			{
 				OutputDebugStringA((char *)pError->GetBufferPointer());
 				ASSERT(false, "%s", (char *)pError->GetBufferPointer());
@@ -61,16 +62,14 @@ namespace moz
 		PolygonManager::~PolygonManager()
 		{
 			SAFE_RELEASE(m_p2DDec);
-			SAFE_RELEASE(m_2Dvtx);
-			SAFE_RELEASE(m_2Dcol);
-			SAFE_RELEASE(m_2Dtex);
+			SAFE_RELEASE(m_2DVtxBuff._vtx);
+			SAFE_RELEASE(m_2DVtxBuff._col);
+			SAFE_RELEASE(m_2DVtxBuff._tex);
 			SAFE_RELEASE(m_2DEffect);
 
-
-			for (auto it = m_2DPolygonList.begin(); it != m_2DPolygonList.end(); ++it)
+			for (auto it: m_2DPolygonList)
 			{
-				delete (*it);
-				(*it) = nullptr;
+				SAFE_DELETE(it);
 			}
 		}
 
@@ -85,10 +84,10 @@ namespace moz
 				(D3DUSAGE_WRITEONLY),
 				NULL,
 				D3DPOOL_MANAGED,
-				&m_2Dvtx,
+				&m_2DVtxBuff._vtx,
 				NULL
 				)))	{
-				ASSERT((m_2Dvtx != NULL), "頂点バッファが確保できませんでした。");
+				ASSERT((m_2DVtxBuff._vtx != NULL), "頂点バッファが確保できませんでした。");
 				return;
 			}
 
@@ -96,10 +95,10 @@ namespace moz
 				(D3DUSAGE_WRITEONLY),
 				NULL,
 				D3DPOOL_MANAGED,
-				&m_2Dcol,
+				&m_2DVtxBuff._col,
 				NULL
 				)))	{
-				ASSERT((m_2Dcol != NULL), "頂点バッファが確保できませんでした。");
+				ASSERT((m_2DVtxBuff._col != NULL), "頂点バッファが確保できませんでした。");
 				return;
 			}
 
@@ -107,10 +106,10 @@ namespace moz
 				(D3DUSAGE_WRITEONLY),
 				NULL,
 				D3DPOOL_MANAGED,
-				&m_2Dtex,
+				&m_2DVtxBuff._tex,
 				NULL
 				)))	{
-				ASSERT((m_2Dtex != NULL), "頂点バッファが確保できませんでした。");
+				ASSERT((m_2DVtxBuff._tex != NULL), "頂点バッファが確保できませんでした。");
 				return;
 			}
 		}
@@ -120,9 +119,10 @@ namespace moz
 		//------------------------------------------------------------------------------
 		void PolygonManager::Update(void)
 		{
-			for (auto it = m_2DPolygonList.begin(); it != m_2DPolygonList.end(); ++it)
+			for (auto it: m_2DPolygonList)
 			{
-				(*it)->Update();
+				it->Update();
+				it->GetRot().v.y += 0.01f;
 			}
 		}
 
@@ -145,9 +145,9 @@ namespace moz
 				);
 
 			// 2D描画
-			pDevice->SetStreamSource(0, m_2Dvtx, 0, sizeof(Vector3D));
-			pDevice->SetStreamSource(1, m_2Dcol, 0, sizeof(Color));
-			pDevice->SetStreamSource(2, m_2Dtex, 0, sizeof(Vector2D));
+			pDevice->SetStreamSource(0, m_2DVtxBuff._vtx, 0, sizeof(Vector3D));
+			pDevice->SetStreamSource(1, m_2DVtxBuff._col, 0, sizeof(Color));
+			pDevice->SetStreamSource(2, m_2DVtxBuff._tex, 0, sizeof(Vector2D));
 
 			// シェーダ開始
 			m_2DEffect->Begin(nullptr, 0);
@@ -157,17 +157,17 @@ namespace moz
 			int startvtx = 0;
 
 			// 一個ずつ描画
-			for (auto it = m_2DPolygonList.begin(); it != m_2DPolygonList.end(); ++it)
+			for (auto it: m_2DPolygonList)
 			{
 				// シェーダ設定
-				m_2DEffect->SetFloatArray(m_2DHandle.pos, (float *)&(*it)->GetPos(), 3);
-				m_2DEffect->SetFloat(m_2DHandle.rot, (*it)->GetRot().v.y);
+				m_2DEffect->SetFloatArray(m_2DHandle.pos, (float *)&it->GetPos(), 3);
+				m_2DEffect->SetFloat(m_2DHandle.rot, it->GetRot().v.y);
 				m_2DEffect->CommitChanges();
 
 				// ドロー
-				//(*it)->Draw();
-				pDevice->DrawPrimitive(D3DPT_TRIANGLESTRIP, startvtx, ((*it)->GetVtxNum() + 1) / 2);
-				startvtx += (*it)->GetVtxNum();
+				it->Draw();
+				pDevice->DrawPrimitive(D3DPT_TRIANGLESTRIP, startvtx, (it->GetVtxNum() + 1) / 2);
+				startvtx += it->GetVtxNum();
 			}
 
 			// シェーダ終了
@@ -229,9 +229,9 @@ namespace moz
 
 			// サイズを入れておく
 			m_2DLockBuff.num = vtxnum;
-			m_2Dvtx->Lock(size * 3 * vtxoffset, size * 3 * vtxnum, (void **)&m_2DLockBuff.vtx, 0);
-			m_2Dcol->Lock(size * 4 * vtxoffset, size * 4 * vtxnum, (void **)&m_2DLockBuff.col, 0);
-			m_2Dtex->Lock(size * 2 * vtxoffset, size * 2 * vtxnum, (void **)&m_2DLockBuff.tex, 0);
+			m_2DVtxBuff._vtx->Lock(size * 3 * vtxoffset, size * 3 * vtxnum, (void **)&m_2DLockBuff.vtx, 0);
+			m_2DVtxBuff._col->Lock(size * 4 * vtxoffset, size * 4 * vtxnum, (void **)&m_2DLockBuff.col, 0);
+			m_2DVtxBuff._tex->Lock(size * 2 * vtxoffset, size * 2 * vtxnum, (void **)&m_2DLockBuff.tex, 0);
 		}
 
 		//==============================================================================
@@ -242,19 +242,19 @@ namespace moz
 			// 色
 			if (m_2DLockBuff.col != nullptr)
 			{
-				m_2Dcol->Unlock();
+				m_2DVtxBuff._col->Unlock();
 				m_2DLockBuff.col = nullptr;
 			}
 			// テクスチャ
 			if (m_2DLockBuff.tex != nullptr)
 			{
-				m_2Dtex->Unlock();
+				m_2DVtxBuff._tex->Unlock();
 				m_2DLockBuff.tex = nullptr;
 			}
 			// 頂点
 			if (m_2DLockBuff.vtx != nullptr)
 			{
-				m_2Dvtx->Unlock();
+				m_2DVtxBuff._vtx->Unlock();
 				m_2DLockBuff.vtx = nullptr;
 			}
 		}

@@ -33,13 +33,13 @@ class testDirectX : public moz::DirectX::DirectX
 {
 public:
 	testDirectX(moz::window::window* window, bool bWindowMode = true) :moz::DirectX::DirectX(window, bWindowMode){};
-
+	~testDirectX(){};
 protected:
 	void Init(void)
 	{
 		m_PolygonManager = new moz::DirectX::PolygonManager(this);
 		
-		for (int i = 0; i < 10000; i++)
+		for (int i = 0; i < 100; i++)
 			m_PolygonManager->Create2D()->GetPos() = Vector3D(rand() % m_pWindow->GetWidth(), rand() % m_pWindow->GetHeight(), 1.f);
 	}
 
