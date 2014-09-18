@@ -70,6 +70,9 @@ namespace moz
 			std::list<LostResource*>::iterator SetLostResource(LostResource * const);
 			void DelLostResource(std::list<LostResource*>::iterator const);
 
+			// Window取得
+			const moz::window::window* GetWindow(void) const { return m_pWindow; }
+
 		protected:
 			// オーバーライドすれば読み込むよー
 			virtual void Init(void)  {};

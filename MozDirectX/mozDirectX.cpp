@@ -182,12 +182,12 @@ namespace moz
 						dwFPSLastTime = dwCurrentTime;	// FPS計測した時間を記録
 						dwFrameCount = 0;				// 秒間フレーム数をリセット
 
-#ifdef _DEBUG
+//#ifdef _DEBUG
 						// ウィンドウ名を設定
 						char cText[256];
 						sprintf_s(cText, "%dfps", fps);
 						m_pWindow->SetWindowName(cText);
-#endif
+//#endif
 
 					}
 
@@ -315,7 +315,6 @@ namespace moz
 		//------------------------------------------------------------------------------
 		void DirectX::DeviceTryBack(void)
 		{
-			m_pDevice->CheckDeviceState
 			// デバイスがロストした場合
 			if (m_IsDeviceLost)
 			{
@@ -328,7 +327,7 @@ namespace moz
 						return ;  // デバイスはまだ失われている
 
 					if (hr != D3DERR_DEVICENOTRESET)
-						return;//m_pWindow->Exit(); // エラー
+						m_pWindow->Exit(); // エラー
 
 					// デバイスロスト対応
 					for (auto it = m_DevLost.begin(); it != m_DevLost.end(); ++it)
@@ -344,7 +343,7 @@ namespace moz
 							return ; // デバイスはまだ失われている
 
 						// エラー
-						//m_pWindow->Exit();
+						m_pWindow->Exit();
 					}
 
 

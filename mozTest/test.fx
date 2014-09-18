@@ -1,6 +1,9 @@
 float4 gColor;
 float4x4 proj;
 
+float3 pos = { 0, 0, 0};
+float rot = 0;
+
 // テクスチャ
 texture gDiffuseMap;
 
@@ -33,8 +36,18 @@ Vs_out VS(
 	)
 {
 	Vs_out Out;
-	Out.Pos = mul(float4(Pos, 1.0f), proj);
-	Out.color = gColor;
+
+	float sinBuf = sin(rot); // サインバッファ
+	float cosBuf = cos(rot); // コサインバッファ
+	float3 pos2 = Pos;
+
+	pos2.x = Pos.x * cosBuf - Pos.y * sinBuf;
+	pos2.y = Pos.x * sinBuf + Pos.y * cosBuf;
+	pos2.x += pos.x;
+	pos2.y += pos.y;
+
+	Out.Pos = mul(float4(pos2, 1.0f), proj);
+	Out.color = Col;
 	Out.uv = Tex0;
 
 	return Out;
@@ -43,8 +56,14 @@ Vs_out VS(
 // ピクセルシェーダ
 float4 PS(Vs_out vr) : COLOR
 {
-	// テクスチャ適用
 	return vr.color;
+}
+
+
+// ピクセルシェーダ
+float4 PS2(Vs_out vr) : COLOR
+{
+	return vr.color * tex2D(diffuseSampler, vr.uv);
 }
 
 technique basicTechnique
@@ -53,6 +72,18 @@ technique basicTechnique
 	{
 		VertexShader = compile vs_2_0 VS();
 		PixelShader = compile ps_2_0 PS();
+
+		// レンダーステート系も使える！！
+		AlphaBlendEnable = true;
+		BlendOp = ADD;
+		SrcBlend = SRCALPHA;
+		DestBlend = INVSRCALPHA;
+
+	}
+	pass p1
+	{
+		VertexShader = compile vs_2_0 VS();
+		PixelShader = compile ps_2_0 PS2();
 
 		// レンダーステート系も使える！！
 		AlphaBlendEnable = true;
