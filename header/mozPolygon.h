@@ -12,20 +12,19 @@
 
 #include <mozDirectX.h>
 #include <mozMath.h>
-
 #include <vector>
-
-
-using namespace moz::math;
 
 //==============================================================================
 // ポリゴン表示用
 //------------------------------------------------------------------------------
 namespace moz
 {
-
 	namespace DirectX
 	{
+		// 前方宣言
+		class PolygonManager;
+		using namespace moz::math;
+
 		// 3D用頂点フォーマット
 		static const D3DVERTEXELEMENT9 Vtx3dDecl[] =
 		{
@@ -46,42 +45,65 @@ namespace moz
 		};
 
 		// 静的確保
-		static const int k3DMaxBuffer = 400;	// 3Dポリゴン
+		static const int k3DMaxBuffer = 40000;	// 3Dポリゴン
 		static const int k2DMaxBuffer = 40000;	// 2Dポリゴン
+
+		// ロックに使う時のバッファ
+		struct _2DLOCKBUFF {
+			Vector3D*		vtx;
+			Color*			col;
+			Vector2D*		tex;
+			unsigned int	num;
+		};
+		// ロックに使う時のバッファ
+		struct _3DLOCKBUFF {
+			Vector3D*		vtx;
+			Vector3D*		nor;
+			Color*			col;
+			Vector2D*		tex;
+			unsigned int	num;
+		};
 
 		//==============================================================================
 		// ポリゴンコンテナ
 		//------------------------------------------------------------------------------
-		class DrawList
+		class PolygonContainer
 		{
 		public:
-			DrawList()
+			PolygonContainer()
 				: m_DethFlag(false)
 				, m_rot(0, 0, 0)
 				, m_pos(0, 0, 0)
-				, m_scl(0, 0, 0)
+				, m_scl(1, 1, 1)
 				, m_tex(nullptr)
 				, m_vtxNum(0)
+				, m_col(Color(1, 1, 1, 1))
+				, m_manager(nullptr)
 			{};
-			virtual ~DrawList(){};
-			
+			virtual ~PolygonContainer(){};
+
 			virtual void Draw() = 0;
 			virtual void Update() = 0;
+
+			virtual void SetVtx(){ ASSERT(false, "error"); }
 
 			Vector3D& GetRot(void) { return m_rot; }
 			Vector3D& GetPos(void) { return m_pos; }
 			Vector3D& GetScl(void) { return m_scl; }
+			Color& GetCol(void) { return m_col; }
 
 			TexContainer*& GetTex(void) { return m_tex; }
-			
+
 			unsigned int GetVtxNum(void) { return m_vtxNum; }
 			bool GetDethFlag(void){ return m_DethFlag; }
-
+			void SetManager(PolygonManager* p){ m_manager = p; }
 
 		protected:
 			Vector3D m_rot;
 			Vector3D m_pos;
 			Vector3D m_scl;
+			Color    m_col;
+			PolygonManager* m_manager;
 
 			void SetVtxNum(unsigned int num) { m_vtxNum = num; }
 
@@ -94,28 +116,34 @@ namespace moz
 		//==============================================================================
 		// 3Dポリゴン
 		//------------------------------------------------------------------------------
-		class Draw3D : public DrawList
+		class Polygon3D : public PolygonContainer
 		{
 		public:
-			Draw3D();
-			virtual ~Draw3D();
+			Polygon3D(const Vector2D& size);
+			virtual ~Polygon3D();
 
+			virtual void SetVtx(const _3DLOCKBUFF* buff);
 			virtual void Draw(void);
 			virtual void Update(void);
 
+			const D3DXMATRIX& GetWorldMtx(void){ return m_mtxWorld; }
+
 		protected:
+			Vector2D m_size;
+			D3DXMATRIX m_mtxWorld;
 
 		};
 
 		//==============================================================================
 		// 2Dポリゴン
 		//------------------------------------------------------------------------------
-		class Draw2D : public DrawList
+		class Polygon2D : public PolygonContainer
 		{
 		public:
-			Draw2D(const Vector2D& size);
-			virtual ~Draw2D();
+			Polygon2D(const Vector2D& size);
+			virtual ~Polygon2D();
 
+			virtual void SetVtx(const _2DLOCKBUFF* buff);
 			virtual void Draw(void);
 			virtual void Update(void);
 
@@ -138,25 +166,60 @@ namespace moz
 			void Draw(void);
 
 			// 作成とか
-			Draw2D* Create2D(const Vector2D& size = Vector2D(100.f, 100.f), const Color& col = Color(1, 1, 1, 1));
+			Polygon2D* Create2D(const Vector2D& size = Vector2D(100.f, 100.f), const Color& col = Color(1, 1, 1, 1));
+			
+			// 3Dポリゴン作成
+			template<class _T, class... Args>
+			_T* Create3D(const Args&... args)
+			{
+				_T* buf = new _T(args...);
+
+				buf->SetManager(this);
+
+				if (m_3DusingNum + buf->GetVtxNum() > k3DMaxBuffer)
+				{
+					ASSERT(false, "3Dバッファオーバー");
+					SAFE_DELETE(buf);
+					return nullptr;
+				}
+
+				Lock3D(m_3DusingNum, buf->GetVtxNum());
+				buf->SetVtx(&m_3DLockBuff);
+				Unlock3D();
+
+				m_3DusingNum += buf->GetVtxNum();
+				m_3DPolygonList.push_back(buf);
+
+				return buf;
+			}
+
+			const D3DXMATRIX& GetViewMtx(void){ return m_mtxView; }
+			const D3DXMATRIX& GetProjMtx(void){ return m_mtxProj; }
 
 		private:
+			//描画
+			void Draw2DList(void);
+			void Draw3DList(void);
+
 			// 初期化
 			void Init2DVtx(void);
+			void Init3DVtx(void);
 
 			// 2Dバッファロック
 			void Lock2D(unsigned int vtxoffset, unsigned int vtxnum);
 			void Unlock2D(void);
+			// 3Dバッファロック
+			void Lock3D(unsigned int vtxoffset, unsigned int vtxnum);
+			void Unlock3D(void);
+
 
 			//===================================
 			// ポリゴンリスト
-			std::vector<Draw2D*> m_2DPolygonList;
-			std::vector<Draw3D*> m_3DPolygonList;
-			//std::list<DrawList*> m_EffectPolygonList;
+			std::vector<Polygon2D*> m_2DPolygonList;
+			std::vector<Polygon3D*> m_3DPolygonList;
 
 			//===================================
 			// 2D使用
-
 			// 描画用バッファ 
 			struct {
 				IDirect3DVertexBuffer9* _vtx;
@@ -165,12 +228,7 @@ namespace moz
 			} m_2DVtxBuff;	
 
 			// 使用するバッファ
-			struct {
-				Vector3D*		vtx;
-				Color*			col;
-				Vector2D*		tex;
-				unsigned int	num;
-			} m_2DLockBuff;				
+			_2DLOCKBUFF m_2DLockBuff;				
 			unsigned int m_2DusingNum;	// 使用した数
 			LPD3DXEFFECT m_2DEffect;	// シェーダ用
 			struct {
@@ -181,7 +239,6 @@ namespace moz
 
 			//===================================
 			// 3D使用
-
 			// 描画用バッファ 
 			struct {
 				IDirect3DVertexBuffer9* _vtx;
@@ -189,22 +246,28 @@ namespace moz
 				IDirect3DVertexBuffer9* _col;
 				IDirect3DVertexBuffer9* _tex;
 			} m_3DVtxBuff;
-
 			// 使用するバッファ
+			_3DLOCKBUFF m_3DLockBuff;
+			unsigned int m_3DusingNum;
 			struct {
-				Vector3D*		vtx;
-				Color*			col;
-				Vector2D*		tex;
-				unsigned int	num;
-			} m_3DLockBuff;
-
-
+				D3DXHANDLE matWVP;
+				D3DXHANDLE tex;
+			} m_3DHandle;
 			LPD3DXEFFECT m_3DEffect;	// シェーダ用
+
+			// カメラ用
+			D3DXVECTOR3 m_posCameraP;
+			D3DXVECTOR3 m_posCameraR;
+			D3DXVECTOR3 m_vecCameraU;
 
 			//===================================
 			// 頂点宣言
 			LPDIRECT3DVERTEXDECLARATION9 m_p3DDec;
 			LPDIRECT3DVERTEXDECLARATION9 m_p2DDec;
+
+			// 描画用マトリックス
+			D3DXMATRIX m_mtxView;
+			D3DXMATRIX m_mtxProj;
 
 			DirectX* m_pDirectX;
 		};

@@ -14,6 +14,7 @@
 #include <mozMath.h>
 #include <mozDirectX.h>
 #include <mozPolygon.h>
+#include <moz3DPolygon.h>
 
 //*****************************************************************************
 // ライブラリのリンク
@@ -29,7 +30,7 @@ using namespace moz::math;
 //==============================================================================
 // DirectX
 //------------------------------------------------------------------------------
-class testDirectX : public moz::DirectX::DirectX
+class testDirectX : public moz::DirectX::DirectX 
 {
 public:
 	testDirectX(moz::window::window* window, bool bWindowMode = true) :moz::DirectX::DirectX(window, bWindowMode){};
@@ -42,11 +43,16 @@ protected:
 		
 		m_TexManager->LoadDirectory("./data/TEXTURE/test", "test");
 
-		for (int i = 0; i < 100; i++)
+		//for (int i = 0; i < 100; i++)
 		{
-			moz::DirectX::Draw2D * polygon = m_PolygonManager->Create2D();
-			polygon->GetPos() = Vector3D(rand() % m_pWindow->GetWidth(), rand() % m_pWindow->GetHeight(), 1.f);
+			moz::DirectX::Polygon2D * polygon = m_PolygonManager->Create2D();
+			polygon->GetPos() = Vector3D((float)(rand() % m_pWindow->GetWidth()), (float)(rand() % m_pWindow->GetHeight()), 1.f);
 			polygon->GetTex() = m_TexManager->GetTex("field000");
+		}
+		for (int i = 0; i < 10000; i++)
+		{
+			moz::DirectX::Polygon3D* polygon = m_PolygonManager->Create3D<moz::DirectX::PolygonBillboard, Vector2D>(Vector2D(1, 1));
+			polygon->GetPos() = Vector3D((rand() % 5000) / 1000.f - 2.5f, (rand() % 5000) / 1000.f - 2.5f, 1.f);
 		}
 	}
 
@@ -96,6 +102,8 @@ public:
 
 		// 終了
 		SAFE_DELETE(m_directx);
+
+		Sleep(16);
 
 		return 0;
 	}

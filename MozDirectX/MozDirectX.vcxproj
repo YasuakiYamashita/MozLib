@@ -11,10 +11,12 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\header\moz3DPolygon.h" />
     <ClInclude Include="..\header\mozDirectX.h" />
     <ClInclude Include="..\header\mozPolygon.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="moz3DPolygon.cpp" />
     <ClCompile Include="mozDirectX.cpp" />
     <ClCompile Include="mozPolygon.cpp" />
     <ClCompile Include="mozTexture.cpp" />
