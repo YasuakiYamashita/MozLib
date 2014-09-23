@@ -47,7 +47,7 @@ namespace moz
 
 		// 静的確保
 		static const int k3DMaxBuffer = 400;	// 3Dポリゴン
-		static const int k2DMaxBuffer = 4000;	// 2Dポリゴン
+		static const int k2DMaxBuffer = 40000;	// 2Dポリゴン
 
 		//==============================================================================
 		// ポリゴンコンテナ
@@ -82,7 +82,6 @@ namespace moz
 			Vector3D m_rot;
 			Vector3D m_pos;
 			Vector3D m_scl;
-
 
 			void SetVtxNum(unsigned int num) { m_vtxNum = num; }
 
@@ -157,29 +156,50 @@ namespace moz
 
 			//===================================
 			// 2D使用
+
+			// 描画用バッファ 
 			struct {
 				IDirect3DVertexBuffer9* _vtx;
 				IDirect3DVertexBuffer9* _col;
 				IDirect3DVertexBuffer9* _tex;
-			} m_2DVtxBuff;				// 描画用バッファ 
+			} m_2DVtxBuff;	
+
+			// 使用するバッファ
 			struct {
 				Vector3D*		vtx;
 				Color*			col;
 				Vector2D*		tex;
 				unsigned int	num;
-			} m_2DLockBuff;				// 使用するバッファ
+			} m_2DLockBuff;				
 			unsigned int m_2DusingNum;	// 使用した数
 			LPD3DXEFFECT m_2DEffect;	// シェーダ用
 			struct {
 				D3DXHANDLE proj;
-				D3DXHANDLE pos;
-				D3DXHANDLE rot;
+				D3DXHANDLE world;
+				D3DXHANDLE tex;
 			} m_2DHandle;				// ハンドル
 
 			//===================================
 			// 3D使用
-			IDirect3DVertexBuffer9* m_3Dvtx;
-			IDirect3DVertexBuffer9* m_Effectvtx;
+
+			// 描画用バッファ 
+			struct {
+				IDirect3DVertexBuffer9* _vtx;
+				IDirect3DVertexBuffer9* _nor;
+				IDirect3DVertexBuffer9* _col;
+				IDirect3DVertexBuffer9* _tex;
+			} m_3DVtxBuff;
+
+			// 使用するバッファ
+			struct {
+				Vector3D*		vtx;
+				Color*			col;
+				Vector2D*		tex;
+				unsigned int	num;
+			} m_3DLockBuff;
+
+
+			LPD3DXEFFECT m_3DEffect;	// シェーダ用
 
 			//===================================
 			// 頂点宣言

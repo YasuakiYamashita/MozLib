@@ -124,7 +124,7 @@ namespace moz
 
 		protected:
 			TexContainer():_tex(nullptr){};
-			virtual ~TexContainer() = 0;
+			virtual ~TexContainer(){};
 
 			// テクスチャ実態
 			LPDIRECT3DTEXTURE9 _tex;
@@ -169,7 +169,13 @@ namespace moz
 			void DeleteGrop(const char * Grop);
 
 			// ファイルテクスチャ取得
-			const TexContainer* GetTex(const char * name);
+			TexContainer* GetTex(const char * name);
+
+			// テクスチャ
+			void Backup(void){};
+
+			// テクスチャ
+			void Recover(void){};
 
 		private:
 			// データリスト

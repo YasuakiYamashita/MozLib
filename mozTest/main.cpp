@@ -38,9 +38,16 @@ protected:
 	void Init(void)
 	{
 		m_PolygonManager = new moz::DirectX::PolygonManager(this);
+		m_TexManager = new moz::DirectX::TextureManager(this);
 		
+		m_TexManager->LoadDirectory("./data/TEXTURE/test", "test");
+
 		for (int i = 0; i < 100; i++)
-			m_PolygonManager->Create2D()->GetPos() = Vector3D(rand() % m_pWindow->GetWidth(), rand() % m_pWindow->GetHeight(), 1.f);
+		{
+			moz::DirectX::Draw2D * polygon = m_PolygonManager->Create2D();
+			polygon->GetPos() = Vector3D(rand() % m_pWindow->GetWidth(), rand() % m_pWindow->GetHeight(), 1.f);
+			polygon->GetTex() = m_TexManager->GetTex("field000");
+		}
 	}
 
 	void Draw(void)
@@ -56,9 +63,11 @@ protected:
 	void Uninit(void)
 	{
 		SAFE_DELETE(m_PolygonManager);
+		SAFE_DELETE(m_TexManager);
 	}
 
 	moz::DirectX::PolygonManager* m_PolygonManager;
+	moz::DirectX::TextureManager* m_TexManager;
 };
 
 //==============================================================================

@@ -60,7 +60,7 @@ namespace moz
 			_Texlist.clear();
 
 			// デバイスロストした時の登録
-			_DirectX->SetLostResource(this);
+			_sIt = _DirectX->SetLostResource(this);
 		}
 
 		//==============================================================================
@@ -227,7 +227,7 @@ namespace moz
 		//==============================================================================
 		// テクスチャ取得
 		//------------------------------------------------------------------------------
-		const TexContainer* TextureManager::GetTex(const char * name)
+		TexContainer* TextureManager::GetTex(const char * name)
 		{
 			if (name == nullptr) return nullptr;
 

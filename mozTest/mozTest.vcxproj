@@ -91,7 +91,10 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="test.fx">
+    <None Include="data\fx\2d.fx">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="data\fx\3d.fx">
       <FileType>Document</FileType>
     </None>
   </ItemGroup>

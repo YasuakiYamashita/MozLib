@@ -47,13 +47,23 @@ namespace moz
 				return;
 			}
 
+			// シェーダコンパイル
+			if (FAILED(D3DXCreateEffectFromFile(pDevice, "./data/fx/3d.fx", NULL, NULL, D3DXSHADER_SKIPVALIDATION, NULL, &m_3DEffect, &pError)))
+			{
+				OutputDebugStringA((char *)pError->GetBufferPointer());
+				ASSERT(false, "%s", (char *)pError->GetBufferPointer());
+				pError->Release();
+				return;
+			}
+
 			// テクニック設定
 			m_2DEffect->SetTechnique("basicTechnique");
+			m_3DEffect->SetTechnique("basicTechnique");
 
 			// ハンドル取得
-			m_2DHandle.proj = m_2DEffect->GetParameterByName(NULL, "proj");
-			m_2DHandle.pos = m_2DEffect->GetParameterByName(NULL, "pos");
-			m_2DHandle.rot = m_2DEffect->GetParameterByName(NULL, "rot");
+			m_2DHandle.proj = m_2DEffect->GetParameterByName(NULL, "mtxProj");
+			m_2DHandle.world = m_2DEffect->GetParameterByName(NULL, "mtxWorld");
+			m_2DHandle.tex = m_2DEffect->GetParameterByName(NULL, "gDiffuseMap");
 		}
 
 		//==============================================================================
@@ -122,7 +132,6 @@ namespace moz
 			for (auto it: m_2DPolygonList)
 			{
 				it->Update();
-				it->GetRot().v.y += 0.01f;
 			}
 		}
 
@@ -132,17 +141,20 @@ namespace moz
 		void PolygonManager::Draw(void)
 		{
 			// デバイス
-			LPDIRECT3DDEVICE9 pDevice = m_pDirectX->GetDevice();
+			const LPDIRECT3DDEVICE9& pDevice = m_pDirectX->GetDevice();
+			D3DXMATRIX mtxWorld, mtxTmp;
+			int startvtx = 0;
 
-			// 頂点
-			pDevice->SetVertexDeclaration(m_p2DDec);
-
-			const D3DXMATRIX proj(
+			// 
+			const D3DXMATRIX mtxProj(
 				2 / (float)m_pDirectX->GetWindow()->GetWidth(), 0.0f, 0.0f, 0.0f,
 				0.0f, -2 / (float)m_pDirectX->GetWindow()->GetHeight(), 0.0f, 0.0f,
 				0.0f, 0.0f, 1.0f, 0.0f,
 				-1.0f, 1.0f, 0.0f, 1.0f
 				);
+
+			// 頂点
+			pDevice->SetVertexDeclaration(m_p2DDec);
 
 			// 2D描画
 			pDevice->SetStreamSource(0, m_2DVtxBuff._vtx, 0, sizeof(Vector3D));
@@ -151,17 +163,34 @@ namespace moz
 
 			// シェーダ開始
 			m_2DEffect->Begin(nullptr, 0);
-			m_2DEffect->BeginPass(0u);
-			m_2DEffect->SetMatrix(m_2DHandle.proj, &proj);
-
-			int startvtx = 0;
+			m_2DEffect->BeginPass(1u);
 
 			// 一個ずつ描画
 			for (auto it: m_2DPolygonList)
 			{
+				const float sinb = sinf(it->GetRot().v.y);
+				const float cosb = cosf(it->GetRot().v.y);
+
+				D3DXMatrixIdentity(&mtxWorld);
+
+				// 移動行列
+				D3DXMatrixIdentity(&mtxTmp);
+				mtxTmp._41 = it->GetPos().v.x;
+				mtxTmp._42 = it->GetPos().v.y;
+				mtxWorld = mtxTmp * mtxWorld;
+
+				// 回転行列
+				D3DXMatrixIdentity(&mtxTmp);
+				mtxTmp._11 = cosb;
+				mtxTmp._12 = sinb;
+				mtxTmp._21 = -sinb;
+				mtxTmp._22 = cosb;
+				mtxWorld = mtxTmp * mtxWorld;
+
 				// シェーダ設定
-				m_2DEffect->SetFloatArray(m_2DHandle.pos, (float *)&it->GetPos(), 3);
-				m_2DEffect->SetFloat(m_2DHandle.rot, it->GetRot().v.y);
+				m_2DEffect->SetMatrix(m_2DHandle.proj, &mtxProj);
+				m_2DEffect->SetMatrix(m_2DHandle.world, &mtxWorld);
+				m_2DEffect->SetTexture(m_2DHandle.tex, it->GetTex()->GetTex());
 				m_2DEffect->CommitChanges();
 
 				// ドロー
