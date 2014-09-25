@@ -5,11 +5,12 @@
 //
 //==============================================================================
 
-
 //------------------------------------------------------------------------------
 // グローバル
 //------------------------------------------------------------------------------
 float4x4 gMatWVP;
+float2 gScreenSize = { 1280.0f, 720.0f };
+
 
 //==============================================================================
 // 構造体
@@ -52,7 +53,9 @@ Vs_out VS(Vs_in vdata)
 {
 	// 構造体宣言
 	Vs_out result;
+	
 	result.posH = mul(float4(vdata.posL, 1.0f), gMatWVP);
+
 	result.color = vdata.color;
 	result.uv = vdata.uv;
 
@@ -64,11 +67,16 @@ Vs_out VS(Vs_in vdata)
 //------------------------------------------------------------------------------
 float4 PS(Vs_out vr) : COLOR
 {
-	//return float4(1.0f, 0.0f, 0.0f, 1.0f);
 	return vr.color;
+}
 
+//==============================================================================
+// ピクセルシェーダ
+//------------------------------------------------------------------------------
+float4 PS2(Vs_out vr) : COLOR
+{
 	// テクスチャ適応
-	//return float4(tex2D(diffuseSampler, vr.uv).rgb, 1.0f);
+	return tex2D(diffuseSampler, vr.uv) * vr.color;
 }
 
 //==============================================================================
@@ -76,16 +84,31 @@ float4 PS(Vs_out vr) : COLOR
 //------------------------------------------------------------------------------
 technique basicTechnique
 {
+	// テクスチャ無し
 	pass p0
 	{
 		VertexShader = compile vs_2_0 VS();
 		PixelShader = compile ps_2_0 PS();
 
-		// レンダーステート系も使える！！
-		AlphaBlendEnable = true;
-		BlendOp = ADD;
-		SrcBlend = SRCALPHA;
+		// レンダーステート
+		ZENABLE				= TRUE;
+		AlphaBlendEnable	= true;
+		BlendOp				= ADD;
+		SrcBlend			= SRCALPHA;
+		DestBlend			= INVSRCALPHA;
+	}
 
-		DestBlend = INVSRCALPHA;
+	// テクスチャ適用
+	pass p1
+	{
+		VertexShader = compile vs_2_0 VS();
+		PixelShader = compile ps_2_0 PS2();
+
+		// レンダーステート
+		ZENABLE				= TRUE;
+		AlphaBlendEnable	= true;
+		BlendOp				= ADD;
+		SrcBlend			= SRCALPHA;
+		DestBlend			= INVSRCALPHA;
 	}
 }

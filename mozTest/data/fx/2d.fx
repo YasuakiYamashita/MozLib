@@ -10,6 +10,7 @@
 //------------------------------------------------------------------------------
 float4x4 mtxProj;
 float4x4 mtxWorld;
+float2 gScreenSize = { 1280.0f, 720.0f };
 
 //------------------------------------------------------------------------------
 // テクスチャ
@@ -57,6 +58,19 @@ Vs_out VS(VS_in inp)
 
 	Out.Pos   = mul(float4(inp.Pos, 1.0f), mtxWorld);
 	Out.Pos   = mul(Out.Pos, mtxProj);
+
+	// スクリーン座標に対して(-0.5, -0.5)のオフセット
+	Out.Pos /= Out.Pos.w;
+
+	// 射影空間の座標を一度スクリーン座標にして、
+	// 0.5分オフセットしてからもとに戻します。
+	// 下のように書いてもきっとコンパイラがうまいこと最適化してくれます（笑）
+	Out.Pos.x = (Out.Pos.x * gScreenSize.x - 0.5f) / gScreenSize.x;
+	Out.Pos.y = (Out.Pos.y * gScreenSize.y + 0.5f) / gScreenSize.y;
+
+	Out.Pos.w = 1.f;
+
+
 	Out.color = inp.Col;
 	Out.uv    = inp.Tex0;
 
@@ -90,6 +104,7 @@ technique basicTechnique
 		PixelShader = compile ps_2_0 PS();
 
 		// レンダーステート系も使える！！
+		ZENABLE = FALSE;
 		AlphaBlendEnable = true;
 		BlendOp = ADD;
 		SrcBlend = SRCALPHA;
@@ -102,6 +117,7 @@ technique basicTechnique
 		PixelShader = compile ps_2_0 PS2();
 
 		// レンダーステート系も使える！！
+		ZENABLE = FALSE;
 		AlphaBlendEnable = true;
 		BlendOp = ADD;
 		SrcBlend = SRCALPHA;

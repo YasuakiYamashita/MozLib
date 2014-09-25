@@ -49,20 +49,18 @@ namespace moz
 
 			// デバイスのプレゼンテーションパラメータの設定
 			ZeroMemory(&m_d3dppWindow, sizeof(m_d3dppWindow));						// ワークをゼロクリア
-			m_d3dppWindow.BackBufferWidth				= 0;						// ゲーム画面サイズ(幅)
-			m_d3dppWindow.BackBufferHeight				= 0;						// ゲーム画面サイズ(高さ)
-			m_d3dppWindow.BackBufferFormat				= D3DFMT_UNKNOWN;			// バックバッファフォーマットはディスプレイモードに合わせて使う
 			m_d3dppWindow.BackBufferCount				= 1;						// バックバッファの数
-			m_d3dppWindow.SwapEffect					= D3DSWAPEFFECT_DISCARD;	// 映像信号に同期してフリップする
-			m_d3dppWindow.Windowed						= TRUE;						// ウィンドウモード
+			m_d3dppWindow.BackBufferWidth				= m_pWindow->GetWidth();				// ゲーム画面サイズ(幅)
+			m_d3dppWindow.BackBufferHeight				= m_pWindow->GetHeight();			// ゲーム画面サイズ(高さ)
 			m_d3dppWindow.hDeviceWindow					= m_pWindow->GetHWnd();		// ウインドウデバイス
-			m_d3dppWindow.EnableAutoDepthStencil		= FALSE;					// デプスバッファ（Ｚバッファ）とステンシルバッファを作成
-			m_d3dppWindow.AutoDepthStencilFormat		= D3DFMT_A1R5G5B5;			// デプスバッファとして16bitを使う
-			m_d3dppWindow.Flags							= 0;						// フラグ
-			m_d3dppWindow.MultiSampleType				= D3DMULTISAMPLE_NONE;		// マルチサンプル
-			m_d3dppWindow.MultiSampleQuality			= 0;						// マルチサンプル
-			m_d3dppWindow.FullScreen_RefreshRateInHz	= 0;
-			m_d3dppWindow.PresentationInterval			= D3DPRESENT_INTERVAL_IMMEDIATE;
+			m_d3dppWindow.BackBufferFormat				= m_d3ddm.Format;				// バックバッファフォーマットはディスプレイモードに合わせて使う
+			m_d3dppWindow.SwapEffect					= D3DSWAPEFFECT_DISCARD;	// 映像信号に同期してフリップする
+			m_d3dppWindow.Windowed						= m_bWindowMode;					// ウィンドウモード
+			m_d3dppWindow.EnableAutoDepthStencil		= TRUE;						// デプスバッファ（Ｚバッファ）とステンシルバッファを作成
+			m_d3dppWindow.AutoDepthStencilFormat		= D3DFMT_D16;				// デプスバッファとして16bitを使う
+			m_d3dppWindow.FullScreen_RefreshRateInHz	= 0;								// リフレッシュレート
+			m_d3dppWindow.PresentationInterval			= D3DPRESENT_INTERVAL_IMMEDIATE;	// インターバル
+
 
 			// デバイスのプレゼンテーションパラメータの設定
 			ZeroMemory(&m_d3dppFull, sizeof(m_d3dppFull));						// ワークをゼロクリア
@@ -73,8 +71,8 @@ namespace moz
 			m_d3dppFull.SwapEffect					= D3DSWAPEFFECT_DISCARD;	// 映像信号に同期してフリップする
 			m_d3dppFull.Windowed					= FALSE;					// ウィンドウモード
 			m_d3dppFull.hDeviceWindow				= m_pWindow->GetHWnd();		// ウインドウデバイス
-			m_d3dppFull.EnableAutoDepthStencil		= FALSE;					// デプスバッファ（Ｚバッファ）とステンシルバッファを作成
-			m_d3dppFull.AutoDepthStencilFormat		= D3DFMT_A1R5G5B5;			// デプスバッファとして16bitを使う
+			m_d3dppFull.EnableAutoDepthStencil      = TRUE;					// デプスバッファ（Ｚバッファ）とステンシルバッファを作成
+			m_d3dppFull.AutoDepthStencilFormat = D3DFMT_D16;			// デプスバッファとして16bitを使う
 			m_d3dppFull.Flags						= 0;						// フラグ
 			m_d3dppFull.MultiSampleType				= D3DMULTISAMPLE_NONE;		// マルチサンプル
 			m_d3dppFull.MultiSampleQuality			= 0;						// マルチサンプル
@@ -108,11 +106,12 @@ namespace moz
 
 			// レンダーステートパラメータの設定
 			m_pDevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);					// 裏面をカリング
-			m_pDevice->SetRenderState(D3DRS_ZENABLE, TRUE);							// Zバッファを使用
+			m_pDevice->SetRenderState(D3DRS_ZENABLE, D3DZB_TRUE);							// Zバッファを使用
 			m_pDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);				// αブレンドを行う
 			m_pDevice->SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_ADD);				// αブレンドの種類
 			m_pDevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);			// αソースカラーの指定
 			m_pDevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);		// αデスティネーションカラーの指定
+
 
 			// サンプラーステートパラメータの設定
 			m_pDevice->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_WRAP);		// テクスチャアドレッシング方法(U値)を設定
@@ -124,6 +123,7 @@ namespace moz
 			m_pDevice->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_MODULATE);	// アルファブレンディング処理
 			m_pDevice->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);	// 最初のアルファ引数
 			m_pDevice->SetTextureStageState(0, D3DTSS_ALPHAARG2, D3DTA_CURRENT);	// ２番目のアルファ引数
+
 
 			// 開放
 			SAFE_RELEASE(pD3D);
@@ -182,12 +182,12 @@ namespace moz
 						dwFPSLastTime = dwCurrentTime;	// FPS計測した時間を記録
 						dwFrameCount = 0;				// 秒間フレーム数をリセット
 
-//#ifdef _DEBUG
+#ifdef _DEBUG
 						// ウィンドウ名を設定
 						char cText[256];
 						sprintf_s(cText, "%dfps", fps);
 						m_pWindow->SetWindowName(cText);
-//#endif
+#endif
 
 					}
 
@@ -197,15 +197,15 @@ namespace moz
 						// 処理開始時間を記録(処理落ち時に対応するため、終了ではなく開始時間を記録)
 						dwExecLastTime = dwCurrentTime;
 
+						// アップデート
+						Update();
+
 						// シーンのクリア
-						m_pDevice->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(100, 100, 100), 1.0f, 0);
+						m_pDevice->Clear(0, NULL, (D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER), D3DCOLOR_XRGB(100, 100, 100), 1.0f, 0);
 
 						// シーンの描画開始
 						if (SUCCEEDED(m_pDevice->BeginScene()))
 						{
-							// アップデート
-							Update();
-
 							// 描画処理
 							Draw();
 

@@ -43,17 +43,27 @@ protected:
 		
 		m_TexManager->LoadDirectory("./data/TEXTURE/test", "test");
 
-		//for (int i = 0; i < 100; i++)
+		for (int i = 0; i < 100; i++)
 		{
 			moz::DirectX::Polygon2D * polygon = m_PolygonManager->Create2D();
 			polygon->GetPos() = Vector3D((float)(rand() % m_pWindow->GetWidth()), (float)(rand() % m_pWindow->GetHeight()), 1.f);
-			polygon->GetTex() = m_TexManager->GetTex("field000");
+			if (i % 10 != 0)
+				polygon->GetTex() = m_TexManager->GetTex("field000");
 		}
-		for (int i = 0; i < 10000; i++)
+		
+		m_PolygonManager->Create3D<moz::DirectX::PolygonIndex, int, int, float, float>(20, 20, 20.f, 20.f)->GetTex() = m_TexManager->GetTex("field000");
+		
+
+		//for (int i = 0; i < 100; i++)
 		{
-			moz::DirectX::Polygon3D* polygon = m_PolygonManager->Create3D<moz::DirectX::PolygonBillboard, Vector2D>(Vector2D(1, 1));
-			polygon->GetPos() = Vector3D((rand() % 5000) / 1000.f - 2.5f, (rand() % 5000) / 1000.f - 2.5f, 1.f);
+			moz::DirectX::Polygon3D* polygon = m_PolygonManager->Create3D<moz::DirectX::Polygon3D, Vector2D>(Vector2D(100,100));
+			polygon->GetPos() = Vector3D(0, 0, 0);
+			polygon->GetTex() = m_TexManager->GetTex("wall001");
 		}
+		
+
+		
+
 	}
 
 	void Draw(void)

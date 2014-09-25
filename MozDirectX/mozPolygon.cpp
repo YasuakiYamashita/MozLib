@@ -76,11 +76,11 @@ namespace moz
 			D3DXMatrixPerspectiveFovLH(&m_mtxProj,		// プロジェクションマトリックスの初期化
 				D3DX_PI / 4.0f,				// 視野角
 				(float)m_pDirectX->GetWindow()->GetWidth() / (float)m_pDirectX->GetWindow()->GetHeight(),	// アスペクト比
-				0.0f,						// rear値
+				10.0f,						// rear値
 				10000.0f);					// far値
 
 			// ビューマトリックス
-			m_posCameraP = D3DXVECTOR3(0.0f, 2, -5.0f);
+			m_posCameraP = D3DXVECTOR3(0.0f, 200, -300.0f);
 			m_posCameraR = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 			m_vecCameraU = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
 			D3DXMatrixIdentity(&m_mtxView);	// ビューマトリックスの初期化
@@ -215,13 +215,12 @@ namespace moz
 		//------------------------------------------------------------------------------
 		void PolygonManager::Update(void)
 		{
-			for (auto it: m_2DPolygonList)
+			for (auto it : m_3DPolygonList)
 			{
 				it->Update();
 			}
 
-
-			for (auto it : m_3DPolygonList)
+			for (auto it: m_2DPolygonList)
 			{
 				it->Update();
 			}
@@ -256,28 +255,40 @@ namespace moz
 
 			// シェーダ設定
 			m_3DEffect->Begin(nullptr, 0);
-			m_3DEffect->BeginPass(0u);
 
 			// マトリックス設定
 			for (auto it : m_3DPolygonList)
 			{
 				D3DXMATRIX matWVP;
 
-				it->Draw();
+				// 一回ドローを呼ぶ
+				it->DrawUpdate();
 
 				matWVP = it->GetWorldMtx() * m_mtxView * m_mtxProj;
 
 				// 行列設定
 				m_3DEffect->SetMatrix(m_3DHandle.matWVP, &matWVP);	// 行列セット
+
+				// テクスチャデーター
+				if (it->GetTex())
+					m_3DEffect->SetTexture(m_3DHandle.tex, it->GetTex()->GetTex());
+
 				m_3DEffect->CommitChanges();
 
-				// 描画
-				pDevice->DrawPrimitive(D3DPT_TRIANGLESTRIP, startvtx, (it->GetVtxNum() + 1) / 2);
+				// テクスチャ有りとなしでパスを変える
+				m_3DEffect->BeginPass(it->GetTex() ? 1u : 0u);
+
+				// ドロー！！
+				it->Draw(pDevice, startvtx, it->GetVtxNum());
+
+				// 経過
 				startvtx += it->GetVtxNum();
+
+				// 終了
+				m_3DEffect->EndPass();
 			}
 
-			// 終了
-			m_3DEffect->EndPass();
+			// シェーダ終了
 			m_3DEffect->End();
 		}
 
@@ -336,17 +347,30 @@ namespace moz
 				// シェーダ設定
 				m_2DEffect->SetMatrix(m_2DHandle.proj, &mtxProj);
 				m_2DEffect->SetMatrix(m_2DHandle.world, &mtxWorld);
-				m_2DEffect->SetTexture(m_2DHandle.tex, it->GetTex()->GetTex());
+
+				// テクスチャ設定
+				if (it->GetTex())
+					m_2DEffect->SetTexture(m_2DHandle.tex, it->GetTex()->GetTex());
+
 				m_2DEffect->CommitChanges();
 
 				// ドロー
-				it->Draw();
-				pDevice->DrawPrimitive(D3DPT_TRIANGLESTRIP, startvtx, (it->GetVtxNum() + 1) / 2);
+				it->DrawUpdate();
+
+				// テクスチャ有りとなしでパスを変える
+				m_2DEffect->BeginPass(it->GetTex() ? 1u : 0u);
+
+				// ドロー
+				it->Draw(pDevice, startvtx, it->GetVtxNum());
+
 				startvtx += it->GetVtxNum();
+
+				// シェーダ終了
+				m_2DEffect->EndPass();
+
 			}
 
 			// シェーダ終了
-			m_2DEffect->EndPass();
 			m_2DEffect->End();
 		}
 
@@ -373,7 +397,6 @@ namespace moz
 
 			return buf;
 		}
-
 
 		//==============================================================================
 		// 2D ロック
@@ -449,6 +472,41 @@ namespace moz
 		}
 
 		//==============================================================================
+		// インデックス
+		//------------------------------------------------------------------------------
+		LPDIRECT3DINDEXBUFFER9 PolygonManager::CreateIndex(unsigned int IndexNum,const WORD* Index)
+		{
+			LPDIRECT3DINDEXBUFFER9 indexBuff;
+			const LPDIRECT3DDEVICE9& pDevice = m_pDirectX->GetDevice();
+			WORD * pIndex = nullptr;
+			
+			// インデックスバッファ取得
+			if (FAILED(pDevice->CreateIndexBuffer(sizeof(WORD)* IndexNum,
+				D3DUSAGE_WRITEONLY,
+				D3DFMT_INDEX16,
+				D3DPOOL_MANAGED,
+				&indexBuff,
+				NULL)))
+			{
+				ASSERT(false, "インデックスバッファが取得出来ませんでした");
+				return nullptr;
+			}
+
+			// Index 格納
+			if (Index != nullptr)
+			{
+				indexBuff->Lock(0, 0, (void **)&pIndex, 0);
+				for (unsigned int i = 0; i < IndexNum; ++i)
+				{
+					pIndex[i] = Index[i];
+				}
+				indexBuff->Unlock();
+			}
+
+			return indexBuff;
+		}
+
+		//==============================================================================
 		// 3D アンロック
 		//------------------------------------------------------------------------------
 		void PolygonManager::Unlock3D(void)
@@ -477,6 +535,22 @@ namespace moz
 				m_3DVtxBuff._nor->Unlock();
 				m_3DLockBuff.nor = nullptr;
 			}
+		}
+
+		//==============================================================================
+		// ポリゴンコンテナ
+		//------------------------------------------------------------------------------
+		void PolygonContainer::Draw(const LPDIRECT3DDEVICE9& device, unsigned int startvtx, unsigned int vtxnum)
+		{
+			device->DrawPrimitive(D3DPT_TRIANGLESTRIP, startvtx, (vtxnum + 1) / 2);
+		}
+
+		//==============================================================================
+		// デストラクタ
+		//------------------------------------------------------------------------------
+		PolygonContainer::~PolygonContainer()
+		{
+			SAFE_RELEASE(m_indexBuff);
 		}
 	}
 }
@@ -529,7 +603,7 @@ namespace moz
 		//==============================================================================
 		// Draw
 		//------------------------------------------------------------------------------
-		void Polygon2D::Draw(void)
+		void Polygon2D::DrawUpdate(void)
 		{
 		
 		}
@@ -597,7 +671,7 @@ namespace moz
 		//==============================================================================
 		// Draw
 		//------------------------------------------------------------------------------
-		void Polygon3D::Draw(void)
+		void Polygon3D::DrawUpdate(void)
 		{
 			D3DXMATRIX mtxRot;
 			D3DXMatrixIdentity(&mtxRot);

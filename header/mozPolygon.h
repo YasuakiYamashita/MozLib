@@ -79,11 +79,13 @@ namespace moz
 				, m_vtxNum(0)
 				, m_col(Color(1, 1, 1, 1))
 				, m_manager(nullptr)
+				, m_indexBuff(nullptr)
 			{};
-			virtual ~PolygonContainer(){};
+			virtual ~PolygonContainer();
 
-			virtual void Draw() = 0;
+			virtual void DrawUpdate() = 0;
 			virtual void Update() = 0;
+			inline virtual void Draw(const LPDIRECT3DDEVICE9& device, unsigned int startvtx, unsigned int vtxnum);
 
 			virtual void SetVtx(){ ASSERT(false, "error"); }
 
@@ -98,12 +100,15 @@ namespace moz
 			bool GetDethFlag(void){ return m_DethFlag; }
 			void SetManager(PolygonManager* p){ m_manager = p; }
 
+			LPDIRECT3DINDEXBUFFER9& GetIndexBuff(void){ return m_indexBuff; }
+
 		protected:
 			Vector3D m_rot;
 			Vector3D m_pos;
 			Vector3D m_scl;
 			Color    m_col;
 			PolygonManager* m_manager;
+			LPDIRECT3DINDEXBUFFER9 m_indexBuff;
 
 			void SetVtxNum(unsigned int num) { m_vtxNum = num; }
 
@@ -111,6 +116,7 @@ namespace moz
 			unsigned int m_vtxNum;
 			TexContainer *m_tex;
 			bool m_DethFlag;	// 削除フラグ
+
 		};
 
 		//==============================================================================
@@ -123,7 +129,7 @@ namespace moz
 			virtual ~Polygon3D();
 
 			virtual void SetVtx(const _3DLOCKBUFF* buff);
-			virtual void Draw(void);
+			virtual void DrawUpdate(void);
 			virtual void Update(void);
 
 			const D3DXMATRIX& GetWorldMtx(void){ return m_mtxWorld; }
@@ -144,7 +150,7 @@ namespace moz
 			virtual ~Polygon2D();
 
 			virtual void SetVtx(const _2DLOCKBUFF* buff);
-			virtual void Draw(void);
+			virtual void DrawUpdate(void);
 			virtual void Update(void);
 
 		protected:
@@ -196,6 +202,10 @@ namespace moz
 			const D3DXMATRIX& GetViewMtx(void){ return m_mtxView; }
 			const D3DXMATRIX& GetProjMtx(void){ return m_mtxProj; }
 
+			// Index
+			LPDIRECT3DINDEXBUFFER9 CreateIndex(unsigned int IndexNum, const WORD* Index);
+
+
 		private:
 			//描画
 			void Draw2DList(void);
@@ -211,7 +221,6 @@ namespace moz
 			// 3Dバッファロック
 			void Lock3D(unsigned int vtxoffset, unsigned int vtxnum);
 			void Unlock3D(void);
-
 
 			//===================================
 			// ポリゴンリスト

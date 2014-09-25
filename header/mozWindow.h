@@ -38,7 +38,6 @@ namespace moz
 		{
 		public:
 
-
 			// コンストラクタ
 			window(HINSTANCE hInstance, const char * windowName, const char * className = "mozWindow", unsigned int width = 1280u, unsigned int height = 720u);
 
