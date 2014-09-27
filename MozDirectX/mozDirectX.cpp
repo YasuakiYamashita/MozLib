@@ -49,30 +49,32 @@ namespace moz
 
 			// デバイスのプレゼンテーションパラメータの設定
 			ZeroMemory(&m_d3dppWindow, sizeof(m_d3dppWindow));						// ワークをゼロクリア
+			m_d3dppWindow.BackBufferWidth				= 0;						// ゲーム画面サイズ(幅)
+			m_d3dppWindow.BackBufferHeight				= 0;						// ゲーム画面サイズ(高さ)
+			m_d3dppWindow.BackBufferFormat				= D3DFMT_UNKNOWN;			// バックバッファフォーマットはディスプレイモードに合わせて使う
 			m_d3dppWindow.BackBufferCount				= 1;						// バックバッファの数
-			m_d3dppWindow.BackBufferWidth				= m_pWindow->GetWidth();				// ゲーム画面サイズ(幅)
-			m_d3dppWindow.BackBufferHeight				= m_pWindow->GetHeight();			// ゲーム画面サイズ(高さ)
-			m_d3dppWindow.hDeviceWindow					= m_pWindow->GetHWnd();		// ウインドウデバイス
-			m_d3dppWindow.BackBufferFormat				= m_d3ddm.Format;				// バックバッファフォーマットはディスプレイモードに合わせて使う
 			m_d3dppWindow.SwapEffect					= D3DSWAPEFFECT_DISCARD;	// 映像信号に同期してフリップする
-			m_d3dppWindow.Windowed						= m_bWindowMode;					// ウィンドウモード
+			m_d3dppWindow.Windowed						= TRUE;						// ウィンドウモード
+			m_d3dppWindow.hDeviceWindow					= m_pWindow->GetHWnd();		// ウインドウデバイス
 			m_d3dppWindow.EnableAutoDepthStencil		= TRUE;						// デプスバッファ（Ｚバッファ）とステンシルバッファを作成
-			m_d3dppWindow.AutoDepthStencilFormat		= D3DFMT_D16;				// デプスバッファとして16bitを使う
-			m_d3dppWindow.FullScreen_RefreshRateInHz	= 0;								// リフレッシュレート
-			m_d3dppWindow.PresentationInterval			= D3DPRESENT_INTERVAL_IMMEDIATE;	// インターバル
-
+			m_d3dppWindow.AutoDepthStencilFormat		= D3DFMT_D16 ;			// デプスバッファとして16bitを使う
+			m_d3dppWindow.Flags							= 0;						// フラグ
+			m_d3dppWindow.MultiSampleType				= D3DMULTISAMPLE_NONE;		// マルチサンプル
+			m_d3dppWindow.MultiSampleQuality			= 0;						// マルチサンプル
+			m_d3dppWindow.FullScreen_RefreshRateInHz	= 0;
+			m_d3dppWindow.PresentationInterval			= D3DPRESENT_INTERVAL_IMMEDIATE;
 
 			// デバイスのプレゼンテーションパラメータの設定
 			ZeroMemory(&m_d3dppFull, sizeof(m_d3dppFull));						// ワークをゼロクリア
-			m_d3dppFull.BackBufferWidth				= m_d3ddm.Width;		// ゲーム画面サイズ(幅)
-			m_d3dppFull.BackBufferHeight			= m_d3ddm.Height;		// ゲーム画面サイズ(高さ)
+			m_d3dppFull.BackBufferWidth				= m_d3ddm.Width;			// ゲーム画面サイズ(幅)
+			m_d3dppFull.BackBufferHeight			= m_d3ddm.Height;			// ゲーム画面サイズ(高さ)
 			m_d3dppFull.BackBufferFormat			= m_d3ddm.Format;			// バックバッファフォーマットはディスプレイモードに合わせて使う
 			m_d3dppFull.BackBufferCount				= 1;						// バックバッファの数
 			m_d3dppFull.SwapEffect					= D3DSWAPEFFECT_DISCARD;	// 映像信号に同期してフリップする
 			m_d3dppFull.Windowed					= FALSE;					// ウィンドウモード
 			m_d3dppFull.hDeviceWindow				= m_pWindow->GetHWnd();		// ウインドウデバイス
-			m_d3dppFull.EnableAutoDepthStencil      = TRUE;					// デプスバッファ（Ｚバッファ）とステンシルバッファを作成
-			m_d3dppFull.AutoDepthStencilFormat = D3DFMT_D16;			// デプスバッファとして16bitを使う
+			m_d3dppFull.EnableAutoDepthStencil		= TRUE;						// デプスバッファ（Ｚバッファ）とステンシルバッファを作成
+			m_d3dppFull.AutoDepthStencilFormat		= D3DFMT_D16 ;			// デプスバッファとして16bitを使う
 			m_d3dppFull.Flags						= 0;						// フラグ
 			m_d3dppFull.MultiSampleType				= D3DMULTISAMPLE_NONE;		// マルチサンプル
 			m_d3dppFull.MultiSampleQuality			= 0;						// マルチサンプル

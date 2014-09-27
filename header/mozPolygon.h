@@ -35,6 +35,15 @@ namespace moz
 			D3DDECL_END()
 		};
 
+
+		// 3D用頂点フォーマット
+		static const D3DVERTEXELEMENT9 Vtx3dDecl2[] =
+		{
+			{ 0, 0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
+			{ 0, 12, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0 },
+			D3DDECL_END()
+		};
+
 		// 2D用頂点フォーマット
 		static const D3DVERTEXELEMENT9 Vtx2dDecl[] =
 		{
@@ -47,6 +56,9 @@ namespace moz
 		// 静的確保
 		static const int k3DMaxBuffer = 40000;	// 3Dポリゴン
 		static const int k2DMaxBuffer = 40000;	// 2Dポリゴン
+
+
+		static const int SHADOW_MAP_SIZE = 512;
 
 		// ロックに使う時のバッファ
 		struct _2DLOCKBUFF {
@@ -175,8 +187,7 @@ namespace moz
 			Polygon2D* Create2D(const Vector2D& size = Vector2D(100.f, 100.f), const Color& col = Color(1, 1, 1, 1));
 			
 			// 3Dポリゴン作成
-			template<class _T, class... Args>
-			_T* Create3D(const Args&... args)
+			template<class _T, class... Args> _T* Create3D(const Args&... args)
 			{
 				_T* buf = new _T(args...);
 
@@ -257,6 +268,10 @@ namespace moz
 			} m_3DVtxBuff;
 			// 使用するバッファ
 			_3DLOCKBUFF m_3DLockBuff;
+
+			// バッファ
+			IDirect3DVertexBuffer9* m_3DVtxBuff2;
+
 			unsigned int m_3DusingNum;
 			struct {
 				D3DXHANDLE matWVP;
@@ -269,14 +284,28 @@ namespace moz
 			D3DXVECTOR3 m_posCameraR;
 			D3DXVECTOR3 m_vecCameraU;
 
+			// ライト位置
+			D3DXVECTOR3 m_LighPos;
+
 			//===================================
 			// 頂点宣言
 			LPDIRECT3DVERTEXDECLARATION9 m_p3DDec;
+			LPDIRECT3DVERTEXDECLARATION9 m_p3DDec2;
 			LPDIRECT3DVERTEXDECLARATION9 m_p2DDec;
-
+			
 			// 描画用マトリックス
 			D3DXMATRIX m_mtxView;
 			D3DXMATRIX m_mtxProj;
+			D3DXMATRIX m_mLightVP;
+
+			// 影用
+			LPDIRECT3DSURFACE9		m_pShadowMapZ;		// 深度バッファ
+			LPDIRECT3DTEXTURE9		m_pShadowMap;		// テクスチャ
+			LPDIRECT3DSURFACE9		m_pShadowMapSurf;	// サーフェス
+			LPDIRECT3DTEXTURE9		m_pEdgeMap;			// テクスチャ
+			LPDIRECT3DSURFACE9		m_pEdgeMapSurf;		// サーフェス
+			LPDIRECT3DTEXTURE9		m_pSoftMap[2];		// テクスチャ
+			LPDIRECT3DSURFACE9		m_pSoftMapSurf[2];	// サーフェス
 
 			DirectX* m_pDirectX;
 		};

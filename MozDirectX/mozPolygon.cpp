@@ -37,6 +37,7 @@ namespace moz
 			// 頂点データ生成
 			pDevice->CreateVertexDeclaration(Vtx3dDecl, &m_p3DDec);
 			pDevice->CreateVertexDeclaration(Vtx2dDecl, &m_p2DDec);
+			pDevice->CreateVertexDeclaration(Vtx3dDecl2, &m_p3DDec2);
 
 			// エラー取得
 			LPD3DXBUFFER pError;
@@ -76,16 +77,72 @@ namespace moz
 			D3DXMatrixPerspectiveFovLH(&m_mtxProj,		// プロジェクションマトリックスの初期化
 				D3DX_PI / 4.0f,				// 視野角
 				(float)m_pDirectX->GetWindow()->GetWidth() / (float)m_pDirectX->GetWindow()->GetHeight(),	// アスペクト比
-				10.0f,						// rear値
-				10000.0f);					// far値
+				1.0f,						// rear値
+				1500.0f);					// far値
 
 			// ビューマトリックス
-			m_posCameraP = D3DXVECTOR3(0.0f, 200, -300.0f);
+			m_posCameraP = D3DXVECTOR3(0.0f, 30, -100.0f);
 			m_posCameraR = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 			m_vecCameraU = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
 			D3DXMatrixIdentity(&m_mtxView);	// ビューマトリックスの初期化
 			D3DXMatrixLookAtLH(&m_mtxView, &m_posCameraP, &m_posCameraR, &m_vecCameraU);
 
+			// 色位置
+			m_LighPos = D3DXVECTOR3(-5.0f, 100.0f, -30.0f);
+
+			D3DXMATRIX mProj;
+
+			D3DXMatrixPerspectiveFovLH(&mProj
+				, 0.18f*D3DX_PI		// 視野角
+				, 1.0f				// アスペクト比
+				, 1.0f, 1500.0f);	// near far
+			m_mLightVP = m_mtxView * mProj;
+
+			//==============================================================================
+			// シャドウマップの生成
+			ASSERT(SUCCEEDED(pDevice->CreateDepthStencilSurface(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE, D3DFMT_D16, D3DMULTISAMPLE_NONE, 0, TRUE, &m_pShadowMapZ, NULL)) ,"");
+			ASSERT(SUCCEEDED(pDevice->CreateTexture(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &m_pShadowMap, NULL)), "");
+			ASSERT(SUCCEEDED(m_pShadowMap->GetSurfaceLevel(0, &m_pShadowMapSurf)), "");
+			// エッジ
+			ASSERT(SUCCEEDED(pDevice->CreateTexture(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &m_pEdgeMap, NULL)), "");
+			ASSERT(SUCCEEDED(m_pEdgeMap->GetSurfaceLevel(0, &m_pEdgeMapSurf)), "");
+			// エッジをぼかしたマップ
+			ASSERT(SUCCEEDED(pDevice->CreateTexture(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &m_pSoftMap[0], NULL)), "");
+			ASSERT(SUCCEEDED(m_pSoftMap[0]->GetSurfaceLevel(0, &m_pSoftMapSurf[0])), "");
+			ASSERT(SUCCEEDED(pDevice->CreateTexture(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &m_pSoftMap[1], NULL)), "");
+			ASSERT(SUCCEEDED(m_pSoftMap[1]->GetSurfaceLevel(0, &m_pSoftMapSurf[1])), "");
+
+			if (FAILED(pDevice->CreateVertexBuffer(sizeof(float) * 5 * 4,
+				D3DUSAGE_WRITEONLY,
+				NULL,
+				D3DPOOL_MANAGED,
+				&m_3DVtxBuff2,
+				NULL
+				)))	{
+				ASSERT((m_3DVtxBuff2 != NULL), "頂点バッファが確保できませんでした。");
+				return;
+			}
+
+			float *vtx = nullptr;
+
+			m_3DVtxBuff2->Lock(0, 0, (void **)&vtx, 0);
+			const struct {
+				FLOAT       p[3];
+				FLOAT       tu, tv;
+			}
+			Vertex3[4] = {
+				//  x      y     z    tu tv
+				{ -1.0f, +1.0f, 0.1f, 0, 0, },
+				{ +1.0f, +1.0f, 0.1f, 1, 0, },
+				{ +1.0f, -1.0f, 0.1f, 1, 1, },
+				{ -1.0f, -1.0f, 0.1f, 0, 1, },
+			};
+
+			memcpy(vtx, Vertex3, sizeof(float)* 5 * 4);
+
+			m_3DVtxBuff2->Unlock();
+
+			m_3DEffect->OnResetDevice();
 		}
 
 		//==============================================================================
@@ -104,6 +161,7 @@ namespace moz
 			}
 
 			SAFE_RELEASE(m_p3DDec);
+			SAFE_RELEASE(m_p3DDec2);
 			SAFE_RELEASE(m_3DVtxBuff._vtx);
 			SAFE_RELEASE(m_3DVtxBuff._nor);
 			SAFE_RELEASE(m_3DVtxBuff._col);
@@ -113,6 +171,18 @@ namespace moz
 			{
 				SAFE_DELETE(it);
 			}
+
+			SAFE_RELEASE(m_3DVtxBuff2);
+
+			SAFE_RELEASE(m_pSoftMapSurf[1]);
+			SAFE_RELEASE(m_pSoftMap[1]);
+			SAFE_RELEASE(m_pSoftMapSurf[0]);
+			SAFE_RELEASE(m_pSoftMap[0]);
+			SAFE_RELEASE(m_pEdgeMapSurf);
+			SAFE_RELEASE(m_pEdgeMap);
+			SAFE_RELEASE(m_pShadowMapSurf);
+			SAFE_RELEASE(m_pShadowMap);
+			SAFE_RELEASE(m_pShadowMapZ);
 
 		}
 
@@ -231,7 +301,129 @@ namespace moz
 		//------------------------------------------------------------------------------
 		void PolygonManager::Draw(void)
 		{
+			const LPDIRECT3DDEVICE9& pDevice = m_pDirectX->GetDevice();
+			LPDIRECT3DSURFACE9 pOldBackBuffer, pOldZBuffer;
+			D3DVIEWPORT9 oldViewport;
+
+
+
+			//---------------------------------------------------------
+			// 行列の作成
+			//---------------------------------------------------------
+			// ライト方向から見た射影空間への行列
+			D3DXVECTOR3 vLookatPt = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+			D3DXVECTOR3 vUp = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
+			D3DXMATRIX mView;
+			D3DXMatrixLookAtLH(&mView, &m_LighPos, &vLookatPt, &vUp);
+			D3DXMATRIX oldmtxView = m_mtxView;
+			
+			//-------------------------------------------------
+			// レンダリングターゲットの保存
+			//-------------------------------------------------
+			pDevice->GetRenderTarget(0, &pOldBackBuffer);
+			pDevice->GetDepthStencilSurface(&pOldZBuffer);
+			pDevice->GetViewport(&oldViewport);
+
+			//-------------------------------------------------
+			// レンダリングターゲットの変更
+			//-------------------------------------------------
+			pDevice->SetRenderTarget(0, m_pShadowMapSurf);
+			pDevice->SetDepthStencilSurface(m_pShadowMapZ);
+			// ビューポートの変更
+			D3DVIEWPORT9 viewport = { 0, 0      // 左上の座標
+				, SHADOW_MAP_SIZE // 幅
+				, SHADOW_MAP_SIZE // 高さ
+				, 0.0f, 1.0f };     // 前面、後面
+			pDevice->SetViewport(&viewport);
+
+			//-------------------------------------------------
+			// 1パス目:シャドウマップの作成
+			//-------------------------------------------------
+			m_3DEffect->SetTechnique("ShadowMapTechnique");
+			// シャドウマップのクリア
+			pDevice->Clear(0L, NULL
+				, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER
+				, 0xffffffff, 1.0f, 0L);
+
+			m_mtxView = mView;
 			Draw3DList();
+
+			//-------------------------------------------------
+			// 2パス目:深度のエッジを作る
+			//-------------------------------------------------
+			pDevice->SetRenderTarget(0, m_pEdgeMapSurf);
+			// 頂点データ送信
+			pDevice->SetVertexDeclaration(m_p3DDec2);
+
+			m_3DEffect->SetTechnique("EdgeMapTechnique");
+
+			pDevice->SetRenderState(D3DRS_ZENABLE, FALSE);
+			pDevice->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_SELECTARG1);
+			pDevice->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
+			pDevice->SetTextureStageState(1, D3DTSS_COLOROP, D3DTOP_DISABLE);
+
+			m_3DEffect->Begin(nullptr, NULL);
+			m_3DEffect->BeginPass(0u);
+			m_3DEffect->SetTexture("SrcMap", m_pShadowMap);
+			m_3DEffect->CommitChanges();
+			pDevice->SetStreamSource(0, m_3DVtxBuff2, 0, sizeof(float) * 5);
+			pDevice->DrawPrimitive(D3DPT_TRIANGLEFAN, 0, 2);
+			m_3DEffect->EndPass();
+			m_3DEffect->End();
+
+			//-------------------------------------------------
+			// 3パス目:エッジをぼかす
+			//-------------------------------------------------
+			pDevice->SetRenderTarget(0, m_pSoftMapSurf[0]);
+			m_3DEffect->SetTechnique("EdgeSmudgeTechnique");
+
+			m_3DEffect->Begin(nullptr, NULL);
+			m_3DEffect->BeginPass(0u);
+			m_3DEffect->SetTexture("SrcMap", m_pEdgeMap);
+			m_3DEffect->CommitChanges();
+			pDevice->SetStreamSource(0, m_3DVtxBuff2, 0, sizeof(float)* 5);
+			pDevice->DrawPrimitive(D3DPT_TRIANGLEFAN, 0, 2);
+			m_3DEffect->EndPass();
+			m_3DEffect->End();
+			//-------------------------------------------------
+			// 3パス目:エッジをぼかす
+			//-------------------------------------------------
+			pDevice->SetRenderTarget(0, m_pSoftMapSurf[1]);
+			m_3DEffect->SetTechnique("EdgeSmudgeTechnique");
+
+			m_3DEffect->Begin(nullptr, NULL);
+			m_3DEffect->BeginPass(0u);
+			m_3DEffect->SetTexture("SrcMap", m_pSoftMap[0]);
+			m_3DEffect->CommitChanges();
+			pDevice->SetStreamSource(0, m_3DVtxBuff2, 0, sizeof(float)* 5);
+			pDevice->DrawPrimitive(D3DPT_TRIANGLEFAN, 0, 2);
+			m_3DEffect->EndPass();
+			m_3DEffect->End();
+
+			//-------------------------------------------------
+			// レンダリングターゲットを元に戻す
+			//-------------------------------------------------
+			pDevice->SetRenderState(D3DRS_ZENABLE, TRUE);
+			pDevice->SetRenderTarget(0, pOldBackBuffer);
+			pDevice->SetDepthStencilSurface(pOldZBuffer);
+			pDevice->SetViewport(&oldViewport);
+			pOldBackBuffer->Release();
+			pOldZBuffer->Release();
+			m_mtxView = oldmtxView;
+
+			//-------------------------------------------------
+			// 4パス目:シーンの描画
+			//-------------------------------------------------
+			// テクスチャの設定
+			m_3DEffect->SetTechnique("shadowTechnique");
+			m_3DEffect->SetTexture("ShadowMap", m_pShadowMap);
+			m_3DEffect->SetTexture("SrcMap", m_pSoftMap[1]);
+
+			// モデルの描画
+			Draw3DList();			
+
+			//==============================================================================
+			// 2D描画
 			Draw2DList();
 		}
 
@@ -243,6 +435,14 @@ namespace moz
 			// デバイス
 			const LPDIRECT3DDEVICE9& pDevice = m_pDirectX->GetDevice();
 			int startvtx = 0;
+
+			// 射影空間から、テクスチャーの空間に変換する
+			const float fOffsetX = 0.5f + (0.5f / (float)SHADOW_MAP_SIZE);
+			const float fOffsetY = 0.5f + (0.5f / (float)SHADOW_MAP_SIZE);
+			const D3DXMATRIX mScaleBias(0.5f, 0.0f, 0.0f, 0.0f,
+				0.0f, -0.5f, 0.0f, 0.0f,
+				0.0f, 0.0f, 0.0f, 0.0f,
+				fOffsetX, fOffsetY, 0.0f, 1.0f);
 
 			// 頂点データ送信
 			pDevice->SetVertexDeclaration(m_p3DDec);
@@ -259,12 +459,27 @@ namespace moz
 			// マトリックス設定
 			for (auto it : m_3DPolygonList)
 			{
-				D3DXMATRIX matWVP;
+				D3DXMATRIX matWVP, m;
+				D3DXVECTOR4 v;
 
 				// 一回ドローを呼ぶ
 				it->DrawUpdate();
 
 				matWVP = it->GetWorldMtx() * m_mtxView * m_mtxProj;
+
+				// ライトの空間への射影行列
+				m = it->GetWorldMtx() * m_mLightVP;
+				m_3DEffect->SetMatrix("mWLP", &m);
+
+				m = m * mScaleBias; // テクスチャ空間への射影行列
+				m_3DEffect->SetMatrix("mWLPB", &m);
+
+				// ローカル座標系でのライトベクトル
+				D3DXMatrixInverse(&m, NULL, &it->GetWorldMtx());
+				D3DXVec3Transform(&v, &m_LighPos, &m);
+				D3DXVec4Normalize(&v, &v);
+				v.w = 0;
+				m_3DEffect->SetVector("vLightDir", &v);
 
 				// 行列設定
 				m_3DEffect->SetMatrix(m_3DHandle.matWVP, &matWVP);	// 行列セット
@@ -349,8 +564,8 @@ namespace moz
 				m_2DEffect->SetMatrix(m_2DHandle.world, &mtxWorld);
 
 				// テクスチャ設定
-				if (it->GetTex())
-					m_2DEffect->SetTexture(m_2DHandle.tex, it->GetTex()->GetTex());
+				//if (it->GetTex())
+				m_2DEffect->SetTexture(m_2DHandle.tex, m_pShadowMap);
 
 				m_2DEffect->CommitChanges();
 

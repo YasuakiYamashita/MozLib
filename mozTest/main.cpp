@@ -15,6 +15,7 @@
 #include <mozDirectX.h>
 #include <mozPolygon.h>
 #include <moz3DPolygon.h>
+#include <mozInput.h>
 
 //*****************************************************************************
 // ƒ‰ƒCƒuƒ‰ƒŠ‚ÌƒŠƒ“ƒN
@@ -40,29 +41,18 @@ protected:
 	{
 		m_PolygonManager = new moz::DirectX::PolygonManager(this);
 		m_TexManager = new moz::DirectX::TextureManager(this);
+		m_InputManager = new moz::input::InputManager(m_pWindow);
 		
 		m_TexManager->LoadDirectory("./data/TEXTURE/test", "test");
 
-		for (int i = 0; i < 100; i++)
-		{
-			moz::DirectX::Polygon2D * polygon = m_PolygonManager->Create2D();
-			polygon->GetPos() = Vector3D((float)(rand() % m_pWindow->GetWidth()), (float)(rand() % m_pWindow->GetHeight()), 1.f);
-			if (i % 10 != 0)
-				polygon->GetTex() = m_TexManager->GetTex("field000");
-		}
-		
+		m_PolygonManager->Create2D(Vector2D(400,400))->GetPos() = Vector3D(200,200,0);
+
+		moz::DirectX::Polygon3D* polygon = nullptr;
 		m_PolygonManager->Create3D<moz::DirectX::PolygonIndex, int, int, float, float>(20, 20, 20.f, 20.f)->GetTex() = m_TexManager->GetTex("field000");
 		
-
-		//for (int i = 0; i < 100; i++)
-		{
-			moz::DirectX::Polygon3D* polygon = m_PolygonManager->Create3D<moz::DirectX::Polygon3D, Vector2D>(Vector2D(100,100));
-			polygon->GetPos() = Vector3D(0, 0, 0);
-			polygon->GetTex() = m_TexManager->GetTex("wall001");
-		}
-		
-
-		
+		polygon = m_PolygonManager->Create3D<moz::DirectX::PolygonIndex, int, int, float, float>(1, 1, 20.f, 20.f);
+		polygon->GetTex() = m_TexManager->GetTex("field000");
+		polygon->GetPos() = Vector3D(0, 100, 0);
 
 	}
 
@@ -73,6 +63,7 @@ protected:
 
 	void Update(void)
 	{
+		m_InputManager->Update();
 		m_PolygonManager->Update();
 	}
 
@@ -80,10 +71,13 @@ protected:
 	{
 		SAFE_DELETE(m_PolygonManager);
 		SAFE_DELETE(m_TexManager);
+		SAFE_DELETE(m_InputManager);
 	}
 
 	moz::DirectX::PolygonManager* m_PolygonManager;
 	moz::DirectX::TextureManager* m_TexManager;
+
+	moz::input::InputManager* m_InputManager;
 };
 
 //==============================================================================

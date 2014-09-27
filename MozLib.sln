@@ -9,11 +9,13 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MozThread", "MozThread\MozT
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MozWindow", "MozWindow\MozWindow.vcxproj", "{17242E9C-B454-4A6B-AD94-78BBB781912C}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MozTest", "mozTest\mozTest.vcxproj", "{8C03B83D-A225-4021-8763-98279321516E}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MozTest", "MozTest\mozTest.vcxproj", "{8C03B83D-A225-4021-8763-98279321516E}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MozCommon", "MozCommon\mozCommon.vcxproj", "{F209A173-F384-45BD-ADCB-37753FAE407C}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MozDirectX", "MozDirectX\MozDirectX.vcxproj", "{0FA8EAAE-7DFF-44F3-991D-E5B577541641}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MozInput", "MozInput\MozInput.vcxproj", "{AFEB014F-E953-4A24-9EC4-2A48D860DD8A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +47,10 @@ Global
 		{0FA8EAAE-7DFF-44F3-991D-E5B577541641}.Debug|Win32.Build.0 = Debug|Win32
 		{0FA8EAAE-7DFF-44F3-991D-E5B577541641}.Release|Win32.ActiveCfg = Release|Win32
 		{0FA8EAAE-7DFF-44F3-991D-E5B577541641}.Release|Win32.Build.0 = Release|Win32
+		{AFEB014F-E953-4A24-9EC4-2A48D860DD8A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{AFEB014F-E953-4A24-9EC4-2A48D860DD8A}.Debug|Win32.Build.0 = Debug|Win32
+		{AFEB014F-E953-4A24-9EC4-2A48D860DD8A}.Release|Win32.ActiveCfg = Release|Win32
+		{AFEB014F-E953-4A24-9EC4-2A48D860DD8A}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
