@@ -16,7 +16,7 @@ float4   vCol = { 1, 1, 1, 1 }; // メッシュの色
 float4	 vLightDir;	// ライトの方向
 
 static float2 gScreenSize = { 1280.0f, 720.0f };
-static float MAP_SIZE = 512.0f;
+static float MAP_SIZE = 1024.0f;
 
 
 //==============================================================================
@@ -188,8 +188,12 @@ VS_OUT_SHADOW VS_shadowMap(float4 Pos : POSITION){
 //------------------------------------------------------------------------------
 float4 PS_shadowMap(VS_OUT_SHADOW In) : COLOR
 {
-	float4 Color = In.Depth / In.Depth.w;
-	Color.a = 1;
+	float4 Color = In.Depth.z / In.Depth.w;
+
+	Color *= 4.0;
+	Color.g -= 1.0;
+	Color.b -= 2.0;
+	Color.a -= 3.0;
 	return Color;
 }
 
@@ -371,15 +375,15 @@ technique EdgeSmudgeTechnique
 		VertexShader = compile vs_2_0 VS_edgeSmudge();
 		PixelShader = compile ps_2_0 PS_edgeSmudge();
 
-		Sampler[0] = (SrcSamp);
+		Sampler[1] = (SrcSamp);
 
 		// レンダーステート
 		ZENABLE = FALSE;
 
 		// テクスチャ
-		COLOROP[0] = SELECTARG1;
-		COLORARG1[0] = TEXTURE;
-		COLOROP[0] = DISABLE;
+		COLOROP[1] = SELECTARG1;
+		COLORARG1[1] = TEXTURE;
+		COLOROP[1] = DISABLE;
 	}
 }
 
@@ -416,8 +420,8 @@ float4 PS_shadow(VS_OUT_SHADOW In) : COLOR
 
 	Color += In.Diffuse*((shadow_map < In.Depth.z / In.Depth.w - 0.01) ? tex2Dproj(SrcSamp, In.ShadowMapUV) : 1);
 
-	Color.a = 1;
-	Color *= tex2D(diffuseSampler, In.uv);
+	//Color.a = 1;
+	//Color *= tex2D(diffuseSampler, In.uv);
 
 	return Color;
 }
@@ -441,8 +445,8 @@ technique shadowTechnique
 		SrcBlend = SRCALPHA;
 		DestBlend = INVSRCALPHA;
 
-		Sampler[1] = (ShadowMapSamp);
-		Sampler[2] = (SrcSamp);
+		Sampler[0] = (ShadowMapSamp);
+		Sampler[1] = (SrcSamp);
 	}
 
 	// テクスチャ適用
@@ -458,7 +462,10 @@ technique shadowTechnique
 		SrcBlend = SRCALPHA;
 		DestBlend = INVSRCALPHA;
 
+		Sampler[0] = (diffuseSampler);
 		Sampler[1] = (ShadowMapSamp);
 		Sampler[2] = (SrcSamp);
+
+
 	}
 }

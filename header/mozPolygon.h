@@ -58,7 +58,7 @@ namespace moz
 		static const int k2DMaxBuffer = 40000;	// 2Dポリゴン
 
 
-		static const int SHADOW_MAP_SIZE = 512;
+		static const int SHADOW_MAP_SIZE = 1024;
 
 		// ロックに使う時のバッファ
 		struct _2DLOCKBUFF {
@@ -216,6 +216,7 @@ namespace moz
 			// Index
 			LPDIRECT3DINDEXBUFFER9 CreateIndex(unsigned int IndexNum, const WORD* Index);
 
+			D3DXVECTOR3& GetCamPos(void){ return m_posCameraP; }
 
 		private:
 			//描画

@@ -45,6 +45,8 @@ namespace moz
 			const LPDIRECTINPUT8& GetDevice(void){ return m_pDInput; }
 			const moz::window::window* GetWindow(void){ return m_window; }
 
+			 InputKey* const GetKey(void) const { return m_inputkey; }
+
 		private:
 			// デバイス
 			LPDIRECTINPUT8	m_pDInput;
@@ -64,10 +66,10 @@ namespace moz
 			virtual ~InputDevice(){};
 			virtual void Update(void) = 0;
 
-			virtual bool GetPress(int nKey) = 0;
-			virtual bool GetTrigger(int nKey) = 0;
-			virtual bool GetRepeat(int nKey, int interval = 10) = 0;
-			virtual bool GetRelease(int nKey) = 0;
+			inline virtual bool GetPress(int nKey) = 0;
+			inline virtual bool GetTrigger(int nKey) = 0;
+			inline virtual bool GetRepeat(int nKey, int interval = 10) = 0;
+			inline virtual bool GetRelease(int nKey) = 0;
 
 		protected:
 			InputManager* m_pInputManager;
@@ -84,10 +86,10 @@ namespace moz
 			~InputKey();
 			void Update(void);
 
-			bool GetPress(int nKey);
-			bool GetTrigger(int nKey);
-			bool GetRepeat(int nKey, int interval);
-			bool GetRelease(int nKey);
+			inline bool GetPress(int nKey);
+			inline bool GetTrigger(int nKey);
+			inline bool GetRepeat(int nKey, int interval);
+			inline bool GetRelease(int nKey);
 
 		private:
 			BYTE	m_aKeyState[256];

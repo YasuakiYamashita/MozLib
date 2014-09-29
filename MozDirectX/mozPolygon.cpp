@@ -78,24 +78,24 @@ namespace moz
 				D3DX_PI / 4.0f,				// 視野角
 				(float)m_pDirectX->GetWindow()->GetWidth() / (float)m_pDirectX->GetWindow()->GetHeight(),	// アスペクト比
 				1.0f,						// rear値
-				1500.0f);					// far値
+				100.0f);					// far値
 
 			// ビューマトリックス
-			m_posCameraP = D3DXVECTOR3(0.0f, 30, -100.0f);
+			m_posCameraP = D3DXVECTOR3(3.0f, 7, 5.0f);
 			m_posCameraR = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 			m_vecCameraU = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
 			D3DXMatrixIdentity(&m_mtxView);	// ビューマトリックスの初期化
 			D3DXMatrixLookAtLH(&m_mtxView, &m_posCameraP, &m_posCameraR, &m_vecCameraU);
 
 			// 色位置
-			m_LighPos = D3DXVECTOR3(-5.0f, 100.0f, -30.0f);
+			m_LighPos = D3DXVECTOR3(-5.0f, 4.0f, -2.0f);
 
 			D3DXMATRIX mProj;
 
 			D3DXMatrixPerspectiveFovLH(&mProj
-				, 0.18f*D3DX_PI		// 視野角
-				, 1.0f				// アスペクト比
-				, 1.0f, 1500.0f);	// near far
+				, D3DX_PI / 4.0f		// 視野角
+				, (float)m_pDirectX->GetWindow()->GetWidth() / (float)m_pDirectX->GetWindow()->GetHeight()				// アスペクト比
+				, 10.0f, 100.0f);	// near far
 			m_mLightVP = m_mtxView * mProj;
 
 			//==============================================================================
@@ -285,6 +285,9 @@ namespace moz
 		//------------------------------------------------------------------------------
 		void PolygonManager::Update(void)
 		{
+
+			D3DXMatrixLookAtLH(&m_mtxView, &m_posCameraP, &m_posCameraR, &m_vecCameraU);
+
 			for (auto it : m_3DPolygonList)
 			{
 				it->Update();
