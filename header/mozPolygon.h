@@ -298,6 +298,7 @@ namespace moz
 			D3DXMATRIX m_mtxView;
 			D3DXMATRIX m_mtxProj;
 			D3DXMATRIX m_mLightVP;
+			D3DXMATRIX m_mtxLightProj;
 
 			// 影用
 			LPDIRECT3DSURFACE9		m_pShadowMapZ;		// 深度バッファ

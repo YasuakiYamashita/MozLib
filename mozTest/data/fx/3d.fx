@@ -17,7 +17,7 @@ float4	 vLightDir;	// ライトの方向
 
 static float2 gScreenSize = { 1280.0f, 720.0f };
 static float MAP_SIZE = 1024.0f;
-
+static float COL_SIZE = 65535.f;
 
 //==============================================================================
 // 構造体
@@ -109,12 +109,7 @@ float4 PS(VS_OUT vr) : COLOR
 //------------------------------------------------------------------------------
 float4 PS_TEX(VS_OUT vr) : COLOR
 {
-
-	float4 Out = vr.pos.z / vr.pos.w;
-	Out.a = 1;
-	return Out;
-	// テクスチャ適応
-	//return tex2D(diffuseSampler, vr.uv) * vr.color;
+	return tex2D(diffuseSampler, vr.uv) * vr.color;
 }
 
 //==============================================================================
@@ -172,7 +167,7 @@ VS_OUT_SHADOW VS_shadowMap(float4 Pos : POSITION){
 	VS_OUT_SHADOW Out = (VS_OUT_SHADOW)0;        // 出力データ
 
 	// 座標変換
-	float4 pos = mul(Pos, gMatWVP);
+	float4 pos = mul(Pos, mWLP);
 
 	// 位置座標
 	Out.Pos = pos;
@@ -188,13 +183,11 @@ VS_OUT_SHADOW VS_shadowMap(float4 Pos : POSITION){
 //------------------------------------------------------------------------------
 float4 PS_shadowMap(VS_OUT_SHADOW In) : COLOR
 {
-	float4 Color = In.Depth.z / In.Depth.w;
-
-	Color *= 4.0;
-	Color.g -= 1.0;
-	Color.b -= 2.0;
-	Color.a -= 3.0;
-	return Color;
+	float depth = In.Depth.z / In.Depth.w;
+	float4 unpacked_depth = float4(0, 0, COL_SIZE, COL_SIZE);
+	unpacked_depth.g  = modf(depth*COL_SIZE, unpacked_depth.r);
+	unpacked_depth.b *= modf(unpacked_depth.g*COL_SIZE, unpacked_depth.g);
+	return unpacked_depth / COL_SIZE;  // 標準化
 }
 
 
@@ -275,15 +268,27 @@ VS_OUTPUT_QUAD VS_edgeMap(
 //------------------------------------------------------------------------------
 float4 PS_edgeMap(VS_OUTPUT_QUAD In) : COLOR
 {
-	float4 Color;
+	float3 Color = 0;
+	float4 d = 0;
 
-	float4 d0 = tex2D(SrcSamp, In.Tex0) - tex2D(SrcSamp, In.Tex1);
-	float4 d1 = tex2D(SrcSamp, In.Tex2) - tex2D(SrcSamp, In.Tex3);
+	Color = tex2D(SrcSamp, In.Tex0).rgb;
+	d.r = Color.r + ((Color.g + (Color.b / COL_SIZE)) / COL_SIZE);
+	Color = tex2D(SrcSamp, In.Tex1).rgb;
+	d.g = Color.r + ((Color.g + (Color.b / COL_SIZE)) / COL_SIZE);
+	Color = tex2D(SrcSamp, In.Tex2).rgb;
+	d.b = Color.r + ((Color.g + (Color.b / COL_SIZE)) / COL_SIZE);
+	Color = tex2D(SrcSamp, In.Tex3).rgb;
+	d.a = Color.r + ((Color.g + (Color.b / COL_SIZE)) / COL_SIZE);
 
-	Color = d0*d0 + d1*d1;
-	Color.a = 1;
+	Color.r = d.r - d.g;
+	Color.g = d.b - d.a;
 
-	return Color;
+	d    = float4(0, 0, COL_SIZE, COL_SIZE);
+	d.g  = modf((Color.r*Color.r + Color.g*Color.g)*COL_SIZE, d.r);
+	d.b *= modf(d.g*COL_SIZE, d.g);
+
+	return d / COL_SIZE;  // 標準化
+
 }
 
 //==============================================================================
@@ -298,15 +303,8 @@ technique EdgeMapTechnique
 		VertexShader = compile vs_2_0 VS_edgeMap();
 		PixelShader = compile ps_2_0 PS_edgeMap();
 
-		Sampler[0] = (SrcSamp);
-
 		// レンダーステート
 		ZENABLE = FALSE;
-
-		// テクスチャ
-		COLOROP[0]   = SELECTARG1;
-		COLORARG1[0] = TEXTURE;
-		COLOROP[0]   = DISABLE;
 	}
 }
 
@@ -342,7 +340,7 @@ float4 PS_edgeSmudge(VS_OUTPUT_QUAD In) : COLOR
 	float4 Color;
 	float2 dvu = float2(4.0f / MAP_SIZE, 0);
 
-		Color = tex2D(SrcSamp, In.Tex0)
+	Color = tex2D(SrcSamp, In.Tex0)
 		+ tex2D(SrcSamp, In.Tex1)
 		+ tex2D(SrcSamp, In.Tex2)
 		+ tex2D(SrcSamp, In.Tex3)
@@ -375,15 +373,8 @@ technique EdgeSmudgeTechnique
 		VertexShader = compile vs_2_0 VS_edgeSmudge();
 		PixelShader = compile ps_2_0 PS_edgeSmudge();
 
-		Sampler[1] = (SrcSamp);
-
 		// レンダーステート
 		ZENABLE = FALSE;
-
-		// テクスチャ
-		COLOROP[1] = SELECTARG1;
-		COLORARG1[1] = TEXTURE;
-		COLOROP[1] = DISABLE;
 	}
 }
 
@@ -392,7 +383,6 @@ technique EdgeSmudgeTechnique
 //------------------------------------------------------------------------------
 VS_OUT_SHADOW VS_shadow(VS_IN In){
 	VS_OUT_SHADOW Out = (VS_OUT_SHADOW)0;        // 出力データ
-	float4	uv;
 
 	// 座標変換
 	Out.Pos = mul(float4(In.posL, 1), gMatWVP);
@@ -402,11 +392,8 @@ VS_OUT_SHADOW VS_shadow(VS_IN In){
 
 	Out.uv = In.uv;
 	// テクスチャ座標
-	uv = mul(float4(In.posL, 1), mWLPB);
-	Out.ShadowMapUV = uv;
-	uv = mul(float4(In.posL, 1), mWLP);
-	Out.Depth = uv.zzzw;
-
+	Out.ShadowMapUV = mul(float4(In.posL, 1), mWLPB);
+	Out.Depth       = mul(float4(In.posL, 1), mWLP);
 	return Out;
 }
 //==============================================================================
@@ -415,13 +402,15 @@ VS_OUT_SHADOW VS_shadow(VS_IN In){
 float4 PS_shadow(VS_OUT_SHADOW In) : COLOR
 {
 	float4 Color = In.Ambient;
+	float3 c = tex2Dproj(ShadowMapSamp, In.ShadowMapUV).rgb;
+	float shadow_map = c.r + ((c.g + (c.b / COL_SIZE)) / COL_SIZE);
+	c = tex2Dproj(SrcSamp, In.ShadowMapUV);
+	float shadow = c.r + ((c.g + (c.b / COL_SIZE)) / COL_SIZE);
 
-	float  shadow_map = tex2Dproj(ShadowMapSamp, In.ShadowMapUV).x;
+	Color += ((shadow_map < (In.Depth.z / In.Depth.w) - 0.005f) ? shadow + ((In.Depth.z / In.Depth.w) - shadow_map + 0.005f) : 1);
+	Color.a = 0;
 
-	Color += In.Diffuse*((shadow_map < In.Depth.z / In.Depth.w - 0.01) ? tex2Dproj(SrcSamp, In.ShadowMapUV) : 1);
-
-	//Color.a = 1;
-	//Color *= tex2D(diffuseSampler, In.uv);
+	Color = (Color - 1) * -1;
 
 	return Color;
 }
@@ -439,14 +428,12 @@ technique shadowTechnique
 		PixelShader = compile ps_2_0 PS_shadow();
 
 		// レンダーステート
-		ZENABLE = TRUE;
 		AlphaBlendEnable = true;
 		BlendOp = ADD;
-		SrcBlend = SRCALPHA;
-		DestBlend = INVSRCALPHA;
+		SrcBlend = ZERO;
+		DestBlend = INVSRCCOLOR;
+		ZENABLE = true;
 
-		Sampler[0] = (ShadowMapSamp);
-		Sampler[1] = (SrcSamp);
 	}
 
 	// テクスチャ適用
@@ -456,16 +443,10 @@ technique shadowTechnique
 		PixelShader = compile ps_2_0 PS_shadow();
 
 		// レンダーステート
-		ZENABLE = TRUE;
 		AlphaBlendEnable = true;
 		BlendOp = ADD;
-		SrcBlend = SRCALPHA;
-		DestBlend = INVSRCALPHA;
-
-		Sampler[0] = (diffuseSampler);
-		Sampler[1] = (ShadowMapSamp);
-		Sampler[2] = (SrcSamp);
-
-
+		SrcBlend = ZERO;
+		DestBlend = INVSRCCOLOR;
+		ZENABLE = true;
 	}
 }

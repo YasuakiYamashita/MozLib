@@ -48,11 +48,22 @@ protected:
 		m_PolygonManager->Create2D(Vector2D(400,400))->GetPos() = Vector3D(200,200,0);
 
 		moz::DirectX::Polygon3D* polygon = nullptr;
-		m_PolygonManager->Create3D<moz::DirectX::PolygonIndex, int, int, float, float>(20, 20, 20.f, 20.f);//->GetTex() = m_TexManager->GetTex("field000");
+		m_PolygonManager->Create3D<moz::DirectX::PolygonIndex, int, int, float, float>(4, 4, 20.f, 20.f)->GetTex() = m_TexManager->GetTex("field003");
 		
 		polygon = m_PolygonManager->Create3D<moz::DirectX::PolygonIndex, int, int, float, float>(1, 1, 3.f, 3.f);
-		//polygon->GetTex() = m_TexManager->GetTex("field000");
-		polygon->GetPos() = Vector3D(0, 2, 0);
+		polygon->GetTex() = m_TexManager->GetTex("field000");
+		polygon->GetPos() = Vector3D(0, 1, 0);
+
+
+		polygon = m_PolygonManager->Create3D<moz::DirectX::PolygonIndex, int, int, float, float>(1, 1, 3.f, 3.f);
+		polygon->GetTex() = m_TexManager->GetTex("field000");
+		polygon->GetPos() = Vector3D(0, 2, 2);
+
+		polygon = m_PolygonManager->Create3D<moz::DirectX::PolygonIndex, int, int, float, float>(1, 1, 3.f, 3.f);
+		polygon->GetTex() = m_TexManager->GetTex("field000");
+		polygon->GetPos() = Vector3D(0, 0.5f, -2);
+
+
 
 	}
 

@@ -81,22 +81,31 @@ namespace moz
 				100.0f);					// far値
 
 			// ビューマトリックス
-			m_posCameraP = D3DXVECTOR3(3.0f, 7, 5.0f);
+			m_posCameraP = D3DXVECTOR3(3.0f, 10, 5.0f);
 			m_posCameraR = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 			m_vecCameraU = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
 			D3DXMatrixIdentity(&m_mtxView);	// ビューマトリックスの初期化
 			D3DXMatrixLookAtLH(&m_mtxView, &m_posCameraP, &m_posCameraR, &m_vecCameraU);
 
 			// 色位置
-			m_LighPos = D3DXVECTOR3(-5.0f, 4.0f, -2.0f);
+			m_LighPos = D3DXVECTOR3(-5.0f, 70.0f, -2.0f);
 
-			D3DXMATRIX mProj;
+			//---------------------------------------------------------
+			// 行列の作成
+			//---------------------------------------------------------
+			// ライト方向から見た射影空間への行列
+			D3DXVECTOR3 vLookatPt = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+			D3DXVECTOR3 vUp = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
+			D3DXMATRIX mView;
+			D3DXMatrixLookAtLH(&mView, &m_LighPos, &vLookatPt, &vUp);
 
-			D3DXMatrixPerspectiveFovLH(&mProj
-				, D3DX_PI / 4.0f		// 視野角
-				, (float)m_pDirectX->GetWindow()->GetWidth() / (float)m_pDirectX->GetWindow()->GetHeight()				// アスペクト比
-				, 10.0f, 100.0f);	// near far
-			m_mLightVP = m_mtxView * mProj;
+			D3DXMatrixPerspectiveFovLH(&m_mtxLightProj
+				, 0.3f * D3DX_PI		// 視野角
+				, 1						// アスペクト比
+				, 68.0f, 75.0f);		// near far
+			m_mLightVP = mView * m_mtxLightProj;
+
+
 
 			//==============================================================================
 			// シャドウマップの生成
@@ -307,18 +316,6 @@ namespace moz
 			const LPDIRECT3DDEVICE9& pDevice = m_pDirectX->GetDevice();
 			LPDIRECT3DSURFACE9 pOldBackBuffer, pOldZBuffer;
 			D3DVIEWPORT9 oldViewport;
-
-
-
-			//---------------------------------------------------------
-			// 行列の作成
-			//---------------------------------------------------------
-			// ライト方向から見た射影空間への行列
-			D3DXVECTOR3 vLookatPt = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
-			D3DXVECTOR3 vUp = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
-			D3DXMATRIX mView;
-			D3DXMatrixLookAtLH(&mView, &m_LighPos, &vLookatPt, &vUp);
-			D3DXMATRIX oldmtxView = m_mtxView;
 			
 			//-------------------------------------------------
 			// レンダリングターゲットの保存
@@ -347,8 +344,6 @@ namespace moz
 			pDevice->Clear(0L, NULL
 				, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER
 				, 0xffffffff, 1.0f, 0L);
-
-			m_mtxView = mView;
 			Draw3DList();
 
 			//-------------------------------------------------
@@ -412,11 +407,16 @@ namespace moz
 			pDevice->SetViewport(&oldViewport);
 			pOldBackBuffer->Release();
 			pOldZBuffer->Release();
-			m_mtxView = oldmtxView;
 
 			//-------------------------------------------------
 			// 4パス目:シーンの描画
 			//-------------------------------------------------
+			// テクスチャの設定
+			m_3DEffect->SetTechnique("basicTechnique");
+
+			// モデルの描画
+			Draw3DList();		
+
 			// テクスチャの設定
 			m_3DEffect->SetTechnique("shadowTechnique");
 			m_3DEffect->SetTexture("ShadowMap", m_pShadowMap);
