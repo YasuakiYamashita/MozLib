@@ -114,7 +114,14 @@ namespace moz
 		void PolygonIndex::SetVtx(const _3DLOCKBUFF* buff)
 		{
 			_InitVertexXZ(buff);
+			_InitIndex();
+		}
 
+		//==============================================================================
+		// SetIndex
+		//------------------------------------------------------------------------------
+		void PolygonIndex::_InitIndex(void)
+		{
 			// インデックス　代入
 			if (m_indexBuff == nullptr)
 			{

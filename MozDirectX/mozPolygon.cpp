@@ -78,17 +78,20 @@ namespace moz
 				D3DX_PI / 4.0f,				// 視野角
 				(float)m_pDirectX->GetWindow()->GetWidth() / (float)m_pDirectX->GetWindow()->GetHeight(),	// アスペクト比
 				1.0f,						// rear値
-				100.0f);					// far値
+				50.0f);					// far値
 
 			// ビューマトリックス
-			m_posCameraP = D3DXVECTOR3(3.0f, 10, 5.0f);
+			m_posCameraP = D3DXVECTOR3(3.0f, 5.0f, 5.0f);
 			m_posCameraR = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 			m_vecCameraU = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
 			D3DXMatrixIdentity(&m_mtxView);	// ビューマトリックスの初期化
 			D3DXMatrixLookAtLH(&m_mtxView, &m_posCameraP, &m_posCameraR, &m_vecCameraU);
 
 			// 色位置
-			m_LighPos = D3DXVECTOR3(-5.0f, 70.0f, -2.0f);
+			m_LighPos = D3DXVECTOR3(-30.0f, 40.0f, 00.0f);
+			D3DXVec3Normalize(&m_LighPos, &m_LighPos);
+
+			//m_LighPos *= 3.f;
 
 			//---------------------------------------------------------
 			// 行列の作成
@@ -98,14 +101,16 @@ namespace moz
 			D3DXVECTOR3 vUp = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
 			D3DXMATRIX mView;
 			D3DXMatrixLookAtLH(&mView, &m_LighPos, &vLookatPt, &vUp);
-
+			
+			/*
 			D3DXMatrixPerspectiveFovLH(&m_mtxLightProj
 				, 0.3f * D3DX_PI		// 視野角
 				, 1						// アスペクト比
-				, 68.0f, 75.0f);		// near far
+				, 49.0f, 60.0f);		// near far
+			*/
+			D3DXMatrixOrthoLH(&m_mtxLightProj, 30, 30, -10.f, 25.f);
+
 			m_mLightVP = mView * m_mtxLightProj;
-
-
 
 			//==============================================================================
 			// シャドウマップの生成
@@ -294,8 +299,26 @@ namespace moz
 		//------------------------------------------------------------------------------
 		void PolygonManager::Update(void)
 		{
+			D3DXVECTOR3 vCamP = D3DXVECTOR3(-m_posCameraP.x, 0, -m_posCameraP.z + 10);
+
+			float len =  D3DXVec3Length(&vCamP);
+			D3DXVec3Normalize(&vCamP, &vCamP);
+
+
+			D3DXVECTOR3 vLookatPt = D3DXVECTOR3(0.0f, 0.0f, 0.0f) + vCamP * len;
+			D3DXVECTOR3 vUp = D3DXVECTOR3(0,1,0);
+			D3DXVECTOR3 vPos = (m_LighPos + vCamP) * len;
+			D3DXMATRIX mView;
+
+
+			D3DXMatrixLookAtLH(&mView, &vPos, &vLookatPt, &vUp);
+			D3DXMatrixOrthoLH(&m_mtxLightProj, 30, 30, -10.f, 25.f);
+			m_mLightVP = mView * m_mtxLightProj;
+
 
 			D3DXMatrixLookAtLH(&m_mtxView, &m_posCameraP, &m_posCameraR, &m_vecCameraU);
+
+
 
 			for (auto it : m_3DPolygonList)
 			{
@@ -397,6 +420,36 @@ namespace moz
 			pDevice->DrawPrimitive(D3DPT_TRIANGLEFAN, 0, 2);
 			m_3DEffect->EndPass();
 			m_3DEffect->End();
+			
+		
+			/*/-------------------------------------------------
+			// 3パス目:エッジをぼかす
+			//-------------------------------------------------
+			pDevice->SetRenderTarget(0, m_pSoftMapSurf[0]);
+			m_3DEffect->SetTechnique("EdgeSmudgeTechnique");
+
+			m_3DEffect->Begin(nullptr, NULL);
+			m_3DEffect->BeginPass(0u);
+			m_3DEffect->SetTexture("SrcMap", m_pSoftMap[1]);
+			m_3DEffect->CommitChanges();
+			pDevice->SetStreamSource(0, m_3DVtxBuff2, 0, sizeof(float)* 5);
+			pDevice->DrawPrimitive(D3DPT_TRIANGLEFAN, 0, 2);
+			m_3DEffect->EndPass();
+			m_3DEffect->End();
+			//-------------------------------------------------
+			// 3パス目:エッジをぼかす
+			//-------------------------------------------------
+			pDevice->SetRenderTarget(0, m_pSoftMapSurf[1]);
+			m_3DEffect->SetTechnique("EdgeSmudgeTechnique");
+
+			m_3DEffect->Begin(nullptr, NULL);
+			m_3DEffect->BeginPass(0u);
+			m_3DEffect->SetTexture("SrcMap", m_pSoftMap[0]);
+			m_3DEffect->CommitChanges();
+			pDevice->SetStreamSource(0, m_3DVtxBuff2, 0, sizeof(float)* 5);
+			pDevice->DrawPrimitive(D3DPT_TRIANGLEFAN, 0, 2);
+			m_3DEffect->EndPass();
+			m_3DEffect->End();*/
 
 			//-------------------------------------------------
 			// レンダリングターゲットを元に戻す

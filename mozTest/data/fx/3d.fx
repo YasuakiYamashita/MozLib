@@ -16,8 +16,8 @@ float4   vCol = { 1, 1, 1, 1 }; // メッシュの色
 float4	 vLightDir;	// ライトの方向
 
 static float2 gScreenSize = { 1280.0f, 720.0f };
-static float MAP_SIZE = 1024.0f;
-static float COL_SIZE = 65535.f;
+static float MAP_SIZE = 1024.f;
+static float COL_SIZE = 256.f;
 
 //==============================================================================
 // 構造体
@@ -407,7 +407,7 @@ float4 PS_shadow(VS_OUT_SHADOW In) : COLOR
 	c = tex2Dproj(SrcSamp, In.ShadowMapUV);
 	float shadow = c.r + ((c.g + (c.b / COL_SIZE)) / COL_SIZE);
 
-	Color += ((shadow_map < (In.Depth.z / In.Depth.w) - 0.005f) ? shadow + ((In.Depth.z / In.Depth.w) - shadow_map + 0.005f) : 1);
+	Color += ((shadow_map < (In.Depth.z / In.Depth.w) - 0.005f) ? shadow: 1);
 	Color.a = 0;
 
 	Color = (Color - 1) * -1;

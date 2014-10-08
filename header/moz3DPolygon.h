@@ -55,6 +55,7 @@ namespace moz
 			void _InitVertexXZReverse(const _3DLOCKBUFF* buff);
 			void _InitVertexZYReverse(const _3DLOCKBUFF* buff);
 
+			void _InitIndex(void);
 
 		protected:
 			// ブロックスの数
@@ -65,6 +66,20 @@ namespace moz
 
 			// 必要個数
 			unsigned int m_nNumVertexIndex, m_nNumPolygon;
+
+		};
+
+		class PolygonIndex2 : public PolygonIndex
+		{
+		public:
+			PolygonIndex2(int nNumBlockX, int nNumBlockZ, float fSizeBlockX, float fSizeBlockZ) :
+				PolygonIndex(nNumBlockX, nNumBlockZ, fSizeBlockX, fSizeBlockZ){};
+
+			virtual void SetVtx(const _3DLOCKBUFF* buff)
+			{
+				_InitVertexZYReverse(buff);
+				_InitIndex();
+			}
 
 		};
 

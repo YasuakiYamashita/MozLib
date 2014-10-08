@@ -59,7 +59,7 @@ protected:
 		polygon->GetTex() = m_TexManager->GetTex("field000");
 		polygon->GetPos() = Vector3D(0, 2, 2);
 
-		polygon = m_PolygonManager->Create3D<moz::DirectX::PolygonIndex, int, int, float, float>(1, 1, 3.f, 3.f);
+		polygon = m_PolygonManager->Create3D<moz::DirectX::PolygonIndex2, int, int, float, float>(1, 10, 3.f, 3.f);
 		polygon->GetTex() = m_TexManager->GetTex("field000");
 		polygon->GetPos() = Vector3D(0, 0.5f, -2);
 

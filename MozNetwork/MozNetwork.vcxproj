@@ -11,8 +11,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{920A2986-44D8-4F3E-880F-8B32B552AB84}</ProjectGuid>
-    <RootNamespace>MozLib</RootNamespace>
+    <ProjectGuid>{A73B0377-AD19-4AF1-A6CA-60A6D6AB96E6}</ProjectGuid>
+    <RootNamespace>MozNetwork</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
