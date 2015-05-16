@@ -9,6 +9,7 @@
     <ClInclude Include="..\header\mozDirectX.h" />
     <ClInclude Include="..\header\mozPolygon.h" />
     <ClInclude Include="..\header\moz3DPolygon.h" />
+    <ClInclude Include="..\header\mozTexture.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="mozDirectX.cpp">

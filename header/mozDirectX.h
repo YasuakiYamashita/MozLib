@@ -13,11 +13,12 @@
 // include
 //------------------------------------------------------------------------------
 #include <Windows.h>
+#include <mozWindow.h>
 #include <d3dx9.h>
 #include <map>
 #include <list>
+#include <set>
 #include <string>
-#include <mozWindow.h>
 
 #ifdef _DEBUG
 #pragma comment(lib, "lib/mozDirectX_d.lib")
@@ -112,85 +113,6 @@ namespace moz
 			// Windowポインタ
 			moz::window::window* m_pWindow;
 		};
-
-		//==============================================================================
-		// TexContainer
-		//------------------------------------------------------------------------------
-		class TexContainer
-		{
-		public:
-			// テクスチャ取得
-			const LPDIRECT3DTEXTURE9& GetTex(void){ return _tex; }
-
-		protected:
-			TexContainer():_tex(nullptr){};
-			virtual ~TexContainer(){};
-
-			// テクスチャ実態
-			LPDIRECT3DTEXTURE9 _tex;
-		};
-
-		//==============================================================================
-		// TextureManager
-		//------------------------------------------------------------------------------
-		class TextureManager : public LostResource
-		{
-		private:
-			// テクスチャコンテナ
-			class _texContainer : public TexContainer
-			{
-			public:
-				_texContainer(const char *TexPath, const char *TexName, const TextureManager * const TexManager, const char *GropName = "general");
-				virtual ~_texContainer();
-
-				// Geter
-				const std::string& GetGropName(void){ return _sGropName; }
-				const std::string& GetTexName(void){ return _sTexName; }
-
-			private:
-				const std::string _sGropName;
-				const std::string _sTexName;
-			};
-
-		public:
-			// テクスチャリスト
-			typedef std::map<std::string, _texContainer*> texlist;
-
-			TextureManager(DirectX* _directX);
-			~TextureManager();
-
-			// テクスチャ作成
-			const TexContainer* LoadTex(const char * FilePath, const char * GropName = "general");
-
-			// テクスチャディレクトリ
-			void LoadDirectory(const char * Path, const char * GropName);
-
-			// 同じグループを削除
-			void DeleteGrop(const char * Grop);
-
-			// ファイルテクスチャ取得
-			TexContainer* GetTex(const char * name);
-
-			// テクスチャ
-			void Backup(void){};
-
-			// テクスチャ
-			void Recover(void){};
-
-		private:
-			// データリスト
-			texlist _Texlist;
-
-			// DirectXクラス
-			DirectX *_DirectX;
-
-			// デバイスロスト用
-			std::list<LostResource*>::iterator _sIt;
-		};
-
-		//==============================================================================
-		// データ
-		//------------------------------------------------------------------------------
 	}
 }
 #endif

@@ -14,6 +14,7 @@
 #include <mozMath.h>
 #include <mozDirectX.h>
 #include <mozPolygon.h>
+#include <mozTexture.h>
 #include <moz3DPolygon.h>
 #include <mozInput.h>
 
